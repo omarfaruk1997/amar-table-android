@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private LinearLayout root, listArea;
     private EditText search;
     private int selectedCustomer = -1;
+    private boolean darkMode = false;
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
 
@@ -39,6 +40,7 @@ public class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        darkMode = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", false);
         loadData();
         showCustomers();
     }
@@ -47,11 +49,29 @@ public class MainActivity extends Activity {
         return (int)(v * getResources().getDisplayMetrics().density + .5f);
     }
 
+    private int themedSurface(int color) {
+        if (!darkMode) return color;
+        if (color == Color.WHITE || color == Color.rgb(246, 247, 250)) return Color.rgb(27, 39, 56);
+        if (color == Color.rgb(239, 243, 249) || color == Color.rgb(239, 245, 255)
+                || color == Color.rgb(232, 242, 255) || color == Color.rgb(229, 234, 242)
+                || color == Color.rgb(228, 232, 239)) return Color.rgb(37, 51, 70);
+        return color;
+    }
+
+    private int themedText(int color) {
+        if (!darkMode || color == Color.WHITE) return color;
+        int r = Color.red(color), g = Color.green(color), b = Color.blue(color);
+        int max = Math.max(r, Math.max(g, b)), min = Math.min(r, Math.min(g, b));
+        if (max < 125 && (max - min) < 95) return Color.rgb(232, 238, 247);
+        if (color == Color.rgb(112, 125, 143)) return Color.rgb(165, 178, 195);
+        return color;
+    }
+
     private GradientDrawable shape(int color, int stroke, int radius) {
         GradientDrawable d = new GradientDrawable();
-        d.setColor(color);
+        d.setColor(themedSurface(color));
         d.setCornerRadius(dp(radius));
-        if (stroke != 0) d.setStroke(dp(1), stroke);
+        if (stroke != 0) d.setStroke(dp(1), darkMode ? Color.rgb(61, 76, 97) : stroke);
         return d;
     }
 
@@ -59,7 +79,7 @@ public class MainActivity extends Activity {
         TextView t = new TextView(this);
         t.setText(value);
         t.setTextSize(size);
-        t.setTextColor(color);
+        t.setTextColor(themedText(color));
         if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         t.setGravity(Gravity.CENTER_VERTICAL);
         return t;
@@ -108,11 +128,11 @@ public class MainActivity extends Activity {
 
     private void base(String title, String subtitle) {
         root = column();
-        root.setBackgroundColor(BG);
+        root.setBackgroundColor(darkMode ? Color.rgb(15, 23, 36) : BG);
         root.setPadding(dp(16), dp(16), dp(16), dp(12));
         setContentView(root);
-        getWindow().setStatusBarColor(Color.rgb(15, 29, 52));
-        getWindow().setNavigationBarColor(Color.rgb(246, 247, 250));
+        getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(15, 29, 52));
+        getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
         brand.setPadding(dp(18), dp(18), dp(18), dp(18));
@@ -138,6 +158,19 @@ public class MainActivity extends Activity {
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
+        TextView theme = label(darkMode ? "☀" : "☾", 20, true, Color.rgb(255, 226, 163));
+        theme.setGravity(Gravity.CENTER);
+        theme.setContentDescription("থিম পরিবর্তন");
+        theme.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 18));
+        LinearLayout.LayoutParams themeParams = new LinearLayout.LayoutParams(dp(38), dp(38));
+        themeParams.leftMargin = dp(8);
+        brand.addView(theme, themeParams);
+        theme.setOnClickListener(v -> {
+            darkMode = !darkMode;
+            getPreferences(MODE_PRIVATE).edit().putBoolean("dark_mode", darkMode).apply();
+            if (selectedCustomer >= 0 && selectedCustomer < customers.size()) showProducts(selectedCustomer);
+            else showCustomers();
+        });
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
