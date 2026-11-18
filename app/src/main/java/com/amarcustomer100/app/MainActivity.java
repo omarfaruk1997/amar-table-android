@@ -29,12 +29,12 @@ public class MainActivity extends Activity {
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
 
-    private static final int BG = Color.rgb(245, 247, 251);
-    private static final int INK = Color.rgb(25, 39, 58);
+    private static final int BG = Color.rgb(246, 247, 250);
+    private static final int INK = Color.rgb(23, 33, 52);
     private static final int MUTED = Color.rgb(112, 125, 143);
-    private static final int BLUE = Color.rgb(37, 99, 235);
-    private static final int PALE = Color.rgb(232, 240, 255);
-    private static final int TEAL = Color.rgb(13, 148, 136);
+    private static final int BLUE = Color.rgb(31, 75, 145);
+    private static final int PALE = Color.rgb(239, 243, 249);
+    private static final int TEAL = Color.rgb(13, 125, 112);
     private static final int BORDER = Color.rgb(229, 234, 242);
 
     @Override public void onCreate(Bundle state) {
@@ -111,18 +111,18 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(BG);
         root.setPadding(dp(16), dp(16), dp(16), dp(12));
         setContentView(root);
-        getWindow().setStatusBarColor(Color.rgb(24, 68, 170));
-        getWindow().setNavigationBarColor(BG);
+        getWindow().setStatusBarColor(Color.rgb(15, 29, 52));
+        getWindow().setNavigationBarColor(Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(17), dp(17), dp(17), dp(17));
+        brand.setPadding(dp(18), dp(18), dp(18), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(29, 78, 216), Color.rgb(14, 165, 233)});
-        banner.setCornerRadius(dp(20));
+                new int[]{Color.rgb(15, 29, 52), Color.rgb(31, 75, 110)});
+        banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(5));
-        TextView mark = label("✦", 23, true, BLUE);
+        brand.setElevation(dp(7));
+        TextView mark = label("✦", 25, true, Color.rgb(190, 145, 63));
         mark.setGravity(Gravity.CENTER);
         mark.setBackground(shape(Color.WHITE, 0, 14));
         brand.addView(mark, new LinearLayout.LayoutParams(dp(50), dp(50)));
@@ -130,7 +130,7 @@ public class MainActivity extends Activity {
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
         titles.addView(label(title, 23, true, Color.WHITE));
-        TextView sub = label(subtitle, 12, false, Color.rgb(220, 235, 255));
+        TextView sub = label(subtitle, 12, false, Color.rgb(218, 203, 171));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(brand);
@@ -152,7 +152,7 @@ public class MainActivity extends Activity {
     private void showCustomers() {
         selectedCustomer = -1;
         base("কাস্টমার সাথী", "কাস্টমার, ঠিকানা ও যোগাযোগের তথ্য");
-        TextView add = action("+   নতুন কাস্টমার যোগ করুন", BLUE, Color.WHITE, 14);
+        TextView add = action("+   নতুন কাস্টমার যোগ করুন", Color.rgb(31, 75, 110), Color.WHITE, 14);
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
         ap.bottomMargin = dp(14);
@@ -161,8 +161,8 @@ public class MainActivity extends Activity {
 
         LinearLayout dashboard = row();
         dashboard.setPadding(dp(14), dp(13), dp(14), dp(13));
-        dashboard.setBackground(shape(Color.WHITE, Color.rgb(225, 234, 247), 18));
-        dashboard.setElevation(dp(2));
+        dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
+        dashboard.setElevation(dp(4));
         dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
         View statDivider = new View(this);
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
         dashParams.bottomMargin = dp(12);
         root.addView(dashboard, 2, dashParams);
 
-        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", Color.rgb(229, 242, 255), BLUE, 14);
+        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", Color.rgb(239, 233, 219), Color.rgb(112, 80, 29), 14);
         LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
         backupParams.bottomMargin = dp(12);
         root.addView(backup, 4, backupParams);
@@ -196,7 +196,7 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
-        TextView section = label("কাস্টমার তালিকা", 16, true, INK);
+        TextView section = label("✦   কাস্টমার তালিকা", 16, true, Color.rgb(35, 51, 76));
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -211,9 +211,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(16), dp(15), dp(14), dp(13));
-            card.setBackground(shape(Color.WHITE, Color.rgb(235, 240, 247), 19));
-            card.setElevation(dp(3));
+            card.setPadding(dp(17), dp(16), dp(15), dp(14));
+            card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
+            card.setElevation(dp(4));
 
             LinearLayout top = row();
             TextView customerName = label(name, 18, true, INK);
@@ -420,7 +420,7 @@ public class MainActivity extends Activity {
         JSONObject c = customers.get(index);
         base(c.optString("name"), "এই কাস্টমারের পণ্যের তালিকা");
 
-        TextView add = action("+   নতুন পণ্য যোগ করুন", BLUE, Color.WHITE, 14);
+        TextView add = action("+   নতুন পণ্য যোগ করুন", Color.rgb(31, 75, 110), Color.WHITE, 14);
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
         ap.bottomMargin = dp(10);
@@ -436,8 +436,8 @@ public class MainActivity extends Activity {
 
         LinearLayout summary = row();
         summary.setPadding(dp(13), dp(12), dp(13), dp(12));
-        summary.setBackground(shape(Color.WHITE, Color.rgb(225, 234, 247), 17));
-        summary.setElevation(dp(2));
+        summary.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 19));
+        summary.setElevation(dp(4));
         JSONArray currentProducts = c.optJSONArray("products");
         int productTotal = currentProducts == null ? 0 : currentProducts.length();
         summary.addView(statTile("মোট পণ্য", String.valueOf(productTotal), "▦", BLUE),
@@ -458,7 +458,7 @@ public class MainActivity extends Activity {
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
-        TextView section = label("পণ্যের তালিকা", 16, true, INK);
+        TextView section = label("✦   পণ্যের তালিকা", 16, true, Color.rgb(35, 51, 76));
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -476,11 +476,11 @@ public class MainActivity extends Activity {
 
             LinearLayout card = row();
             card.setPadding(dp(15), dp(14), dp(11), dp(14));
-            card.setBackground(shape(Color.WHITE, Color.rgb(235, 240, 247), 18));
-            card.setElevation(dp(2));
+            card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 19));
+            card.setElevation(dp(3));
             LinearLayout info = column();
-            info.addView(label(name, 16, true, INK));
-            TextView priceLabel = label("৳  " + price, 15, true, TEAL);
+            info.addView(label(name, 16, true, Color.rgb(27, 42, 64)));
+            TextView priceLabel = label("৳  " + price, 15, true, Color.rgb(151, 111, 42));
             LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
             priceParams.topMargin = dp(5);
             info.addView(priceLabel, priceParams);
