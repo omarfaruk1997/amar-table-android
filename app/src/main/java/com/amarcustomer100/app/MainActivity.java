@@ -150,13 +150,13 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(18), dp(20), dp(15), dp(20));
+        brand.setPadding(dp(18), dp(21), dp(15), dp(21));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{Color.rgb(5, 19, 43), Color.rgb(12, 91, 105), Color.rgb(158, 112, 47)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(12));
+        brand.setElevation(dp(14));
         TextView mark = label("সা", 23, true, Color.rgb(16, 38, 63));
         mark.setTextColor(Color.rgb(16, 38, 63));
         mark.setGravity(Gravity.CENTER);
@@ -177,9 +177,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("13.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("14.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১৩.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১৪.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -200,7 +200,8 @@ public class MainActivity extends Activity {
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
-        search.setElevation(dp(2));
+        search.setElevation(dp(3));
+        search.setBackground(shape(Color.WHITE, Color.rgb(207, 220, 234), 18));
         search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(52));
         sp.topMargin = dp(18);
@@ -282,8 +283,16 @@ public class MainActivity extends Activity {
 
             LinearLayout card = column();
             card.setPadding(dp(17), dp(16), dp(16), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 22));
-            card.setElevation(dp(8));
+            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
+            card.setElevation(dp(9));
+            View accentLine = new View(this);
+            GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                    new int[]{Color.rgb(12, 82, 113), Color.rgb(19, 139, 132), Color.rgb(191, 145, 70)});
+            accentGradient.setCornerRadius(dp(3));
+            accentLine.setBackground(accentGradient);
+            LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(-1, dp(4));
+            accentParams.bottomMargin = dp(12);
+            card.addView(accentLine, accentParams);
             card.setClipToOutline(true);
             card.setAlpha(0f);
             card.setTranslationY(dp(12));
@@ -645,14 +654,14 @@ public class MainActivity extends Activity {
 
             LinearLayout card = row();
             card.setPadding(dp(16), dp(15), dp(12), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 21));
-            card.setElevation(dp(6));
+            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 21));
+            card.setElevation(dp(8));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
             card.animate().alpha(1f).translationY(0f).setDuration(240).start();
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
-            productMark.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(214, 228, 245), 12));
+            productMark.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(196, 220, 235), 14));
             productMark.setElevation(dp(2));
             LinearLayout.LayoutParams productMarkParams = new LinearLayout.LayoutParams(dp(42), dp(44));
             productMarkParams.rightMargin = dp(11);
