@@ -167,7 +167,7 @@ public class MainActivity extends Activity {
         mark.setBackground(shape(Color.rgb(255, 246, 220), Color.rgb(255, 226, 163), 17));
         mark.setPadding(dp(3), dp(3), dp(3), dp(3));
         mark.setElevation(dp(5));
-        mark.setContentDescription("সাথী প্রিমিয়াম অ্যাপ লোগো");
+        mark.setContentDescription("আমার কাস্টমার অ্যাপ লোগো");
         brand.addView(mark, new LinearLayout.LayoutParams(dp(54), dp(54)));
 
         LinearLayout titles = column();
@@ -176,9 +176,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("17.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("18.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১৭.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১৮.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -216,7 +216,7 @@ public class MainActivity extends Activity {
 
     private void showCustomers() {
         selectedCustomer = -1;
-        base("সাথী প্রিমিয়াম", "স্মার্ট কাস্টমার ম্যানেজার");
+        base("আমার কাস্টমার", "আপনার ব্যবসার স্মার্ট কাস্টমার খাতা");
         TextView add = primaryAction("+   নতুন কাস্টমার যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
@@ -603,7 +603,7 @@ public class MainActivity extends Activity {
     private void shareCustomerReport(JSONObject customer) {
         try {
             StringBuilder report = new StringBuilder();
-            report.append("সাথী প্রিমিয়াম — কাস্টমার রিপোর্ট\\n\\n");
+            report.append("আমার কাস্টমার — কাস্টমার রিপোর্ট\\n\\n");
             report.append("নাম: ").append(customer.optString("name")).append('\n');
             String address = customer.optString("address", "").trim();
             String phone = customer.optString("phone", "").trim();
@@ -783,7 +783,7 @@ public class MainActivity extends Activity {
         if (requestCode == REQUEST_BACKUP_EXPORT) {
             try {
                 JSONObject backup = new JSONObject();
-                backup.put("app", "Customer Sathi");
+                backup.put("app", "Amar Customer");
                 backup.put("version", 1);
                 backup.put("createdAt", System.currentTimeMillis());
                 JSONArray saved = new JSONArray();
