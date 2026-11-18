@@ -153,9 +153,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("9.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("10.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৯.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১০.০");
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
@@ -517,8 +517,49 @@ public class MainActivity extends Activity {
         summaryParams.bottomMargin = dp(12);
         root.addView(summary, 4, summaryParams);
 
+        TextView shareReport = action("↗   কাস্টমার রিপোর্ট শেয়ার করুন",
+                darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
+                darkMode ? Color.rgb(186, 216, 255) : Color.rgb(31, 75, 145), 13);
+        LinearLayout.LayoutParams shareParams = new LinearLayout.LayoutParams(-1, dp(45));
+        shareParams.bottomMargin = dp(12);
+        root.addView(shareReport, shareParams);
+        shareReport.setOnClickListener(v -> shareCustomerReport(c));
+
         renderProducts("");
         search.addTextChangedListener(watcher(s -> renderProducts(s)));
+    }
+
+    private void shareCustomerReport(JSONObject customer) {
+        try {
+            StringBuilder report = new StringBuilder();
+            report.append("কাস্টমার সাথী — কাস্টমার রিপোর্ট\\n\\n");
+            report.append("নাম: ").append(customer.optString("name")).append('\\n');
+            String address = customer.optString("address", "").trim();
+            String phone = customer.optString("phone", "").trim();
+            if (!address.isEmpty()) report.append("ঠিকানা: ").append(address).append('\\n');
+            if (!phone.isEmpty()) report.append("মোবাইল: ").append(phone).append('\\n');
+            report.append("\\nপণ্যের তালিকা:\\n");
+            JSONArray items = customer.optJSONArray("products");
+            if (items != null && items.length() > 0) {
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject item = items.optJSONObject(i);
+                    if (item != null) report.append(i + 1).append(". ")
+                        .append(item.optString("name")).append(" — ৳ ")
+                        .append(item.optString("price")).append('\\n');
+                }
+            } else {
+                report.append("এখনও কোনো পণ্য যোগ করা হয়নি।\\n");
+            }
+            report.append("\\nমোট পণ্য: ").append(productCount(customer));
+            report.append("\\nপণ্যের মোট দাম: ৳ ").append(formatMoney(sumProductPrices(customer)));
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, "কাস্টমার রিপোর্ট — " + customer.optString("name"));
+            send.putExtra(Intent.EXTRA_TEXT, report.toString());
+            startActivity(Intent.createChooser(send, "কাস্টমার রিপোর্ট শেয়ার করুন"));
+        } catch (Exception e) {
+            Toast.makeText(this, "রিপোর্ট শেয়ার করা যাচ্ছে না।", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void renderProducts(String filter) {
