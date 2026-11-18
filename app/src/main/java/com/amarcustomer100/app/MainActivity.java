@@ -153,7 +153,7 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(218, 203, 171));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("4.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("6.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -212,7 +212,7 @@ public class MainActivity extends Activity {
         dashParams.bottomMargin = dp(12);
         root.addView(dashboard, 2, dashParams);
 
-        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", Color.rgb(239, 233, 219), Color.rgb(112, 80, 29), 14);
+        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(239, 233, 219), darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 14);
         LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
         backupParams.bottomMargin = dp(12);
         root.addView(backup, 4, backupParams);
