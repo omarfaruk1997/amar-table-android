@@ -135,10 +135,10 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(17), dp(18), dp(15), dp(18));
+        brand.setPadding(dp(17), dp(19), dp(15), dp(19));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(7, 22, 46), Color.rgb(18, 82, 105), Color.rgb(125, 91, 43)});
+                new int[]{Color.rgb(5, 19, 43), Color.rgb(12, 91, 105), Color.rgb(158, 112, 47)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(10));
@@ -153,9 +153,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("8.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("9.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৮.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৯.০");
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
@@ -200,7 +200,7 @@ public class MainActivity extends Activity {
         add.setOnClickListener(v -> customerDialog(-1));
 
         LinearLayout dashboard = row();
-        dashboard.setPadding(dp(14), dp(13), dp(14), dp(13));
+        dashboard.setPadding(dp(10), dp(14), dp(10), dp(14));
         dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
         dashboard.setElevation(dp(4));
         dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
@@ -209,6 +209,11 @@ public class MainActivity extends Activity {
         statDivider.setBackgroundColor(BORDER);
         dashboard.addView(statDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
         dashboard.addView(statTile("মোট পণ্য", String.valueOf(countAllProducts()), "▦", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        View priceDivider = new View(this);
+        priceDivider.setBackgroundColor(BORDER);
+        dashboard.addView(priceDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
+        dashboard.addView(statTile("মোট দাম", "৳ " + formatMoney(sumAllProductPrices()), "৳", Color.rgb(157, 112, 43)),
                 new LinearLayout.LayoutParams(0, -2, 1));
         LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
         dashParams.bottomMargin = dp(12);
@@ -253,10 +258,10 @@ public class MainActivity extends Activity {
             LinearLayout card = column();
             card.setPadding(dp(16), dp(15), dp(15), dp(14));
             card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
-            card.setElevation(dp(6));
+            card.setElevation(dp(7));
             card.setAlpha(0f);
             card.setTranslationY(dp(12));
-            card.animate().alpha(1f).translationY(0f).setDuration(220).start();
+            card.animate().alpha(1f).translationY(0f).setDuration(260).start();
 
             LinearLayout top = row();
             TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true, BLUE);
@@ -345,6 +350,12 @@ public class MainActivity extends Activity {
     private int countAllProducts() {
         int total = 0;
         for (JSONObject c : customers) total += productCount(c);
+        return total;
+    }
+
+    private double sumAllProductPrices() {
+        double total = 0;
+        for (JSONObject customer : customers) total += sumProductPrices(customer);
         return total;
     }
 
@@ -535,7 +546,7 @@ public class MainActivity extends Activity {
             card.setElevation(dp(4));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
-            card.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            card.animate().alpha(1f).translationY(0f).setDuration(240).start();
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
             productMark.setBackground(shape(Color.rgb(232, 241, 252), 0, 12));
