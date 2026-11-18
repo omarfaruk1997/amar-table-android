@@ -142,10 +142,19 @@ public class MainActivity extends Activity {
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(10));
-        TextView mark = label("সা", 22, true, Color.rgb(25, 61, 94));
+        TextView mark = label("সা", 23, true, Color.rgb(16, 38, 63));
+        mark.setTextColor(Color.rgb(16, 38, 63));
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(shape(Color.rgb(246, 231, 198), Color.rgb(196, 159, 91), 16));
-        brand.addView(mark, new LinearLayout.LayoutParams(dp(50), dp(50)));
+        mark.setTypeface(Typeface.create("sans-serif-black", Typeface.BOLD));
+        GradientDrawable markBg = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{Color.rgb(255, 246, 220), Color.rgb(231, 202, 145)});
+        markBg.setCornerRadius(dp(17));
+        markBg.setStroke(dp(1), Color.rgb(255, 226, 163));
+        mark.setBackground(markBg);
+        mark.setElevation(dp(3));
+        mark.setContentDescription("কাস্টমার সাথী লোগো");
+        brand.addView(mark, new LinearLayout.LayoutParams(dp(52), dp(52)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
@@ -153,9 +162,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("10.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("11.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১১.০");
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
