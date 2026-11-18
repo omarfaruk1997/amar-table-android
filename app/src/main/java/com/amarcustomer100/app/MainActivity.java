@@ -497,11 +497,15 @@ public class MainActivity extends Activity {
             card.addView(edit, bp);
             card.addView(del, bp);
             edit.setOnClickListener(v -> productDialog(ix));
-            del.setOnClickListener(v -> {
-                products.remove(ix);
-                saveData();
-                renderProducts(search.getText().toString());
-            });
+            del.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setMessage("এই পণ্যটি মুছে ফেলবেন?")
+                .setPositiveButton("মুছুন", (dialog, which) -> {
+                    products.remove(ix);
+                    saveData();
+                    showProducts(selectedCustomer);
+                })
+                .setNegativeButton("বাতিল", null)
+                .show());
 
             LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(-1, -2);
             cp.bottomMargin = dp(9);
