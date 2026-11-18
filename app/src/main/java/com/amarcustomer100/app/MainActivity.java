@@ -154,7 +154,8 @@ public class MainActivity extends Activity {
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         TextView version = label("8.0", 12, true, Color.rgb(255, 226, 163));
-        version.setGravity(Gravity.CENTER);\n        version.setContentDescription("অ্যাপ সংস্করণ ৮.০");
+        version.setGravity(Gravity.CENTER);
+        version.setContentDescription("অ্যাপ সংস্করণ ৮.০");
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
@@ -174,7 +175,8 @@ public class MainActivity extends Activity {
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
-        search.setElevation(dp(2));\n        search.setSelectAllOnFocus(false);
+        search.setElevation(dp(2));
+        search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
         sp.topMargin = dp(18);
         sp.bottomMargin = dp(12);
@@ -542,7 +544,10 @@ public class MainActivity extends Activity {
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));\n            priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));\n            priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));\n            priceLabel.setGravity(Gravity.CENTER_VERTICAL);
+            TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));
+            priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));
+            priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));
+            priceLabel.setGravity(Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
             priceParams.topMargin = dp(5);
             info.addView(priceLabel, priceParams);
