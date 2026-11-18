@@ -112,7 +112,7 @@ public class MainActivity extends Activity {
         EditText e = new EditText(this);
         e.setHint(hint);
         e.setTextSize(15);
-        e.setTextColor(INK);
+        e.setTextColor(themedText(INK));
         e.setHintTextColor(Color.rgb(151, 162, 178));
         e.setInputType(inputType);
         e.setSingleLine(!multiline);
