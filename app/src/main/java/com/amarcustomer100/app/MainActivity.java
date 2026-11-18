@@ -111,6 +111,8 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(BG);
         root.setPadding(dp(16), dp(16), dp(16), dp(12));
         setContentView(root);
+        getWindow().setStatusBarColor(Color.rgb(24, 68, 170));
+        getWindow().setNavigationBarColor(BG);
 
         LinearLayout brand = row();
         brand.setPadding(dp(17), dp(17), dp(17), dp(17));
@@ -154,13 +156,28 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
         ap.bottomMargin = dp(14);
-        root.addView(add, 2, ap);
+        root.addView(add, 3, ap);
         add.setOnClickListener(v -> customerDialog(-1));
+
+        LinearLayout dashboard = row();
+        dashboard.setPadding(dp(14), dp(13), dp(14), dp(13));
+        dashboard.setBackground(shape(Color.WHITE, Color.rgb(225, 234, 247), 18));
+        dashboard.setElevation(dp(2));
+        dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        View statDivider = new View(this);
+        statDivider.setBackgroundColor(BORDER);
+        dashboard.addView(statDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
+        dashboard.addView(statTile("মোট পণ্য", String.valueOf(countAllProducts()), "▦", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
+        dashParams.bottomMargin = dp(12);
+        root.addView(dashboard, 2, dashParams);
 
         TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", Color.rgb(229, 242, 255), BLUE, 14);
         LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
         backupParams.bottomMargin = dp(12);
-        root.addView(backup, 3, backupParams);
+        root.addView(backup, 4, backupParams);
         backup.setOnClickListener(v -> showBackupOptions());
 
         renderCustomers("");
@@ -179,6 +196,10 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
+        TextView section = label("কাস্টমার তালিকা", 16, true, INK);
+        LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
+        sectionParams.bottomMargin = dp(5);
+        listArea.addView(section, sectionParams);
         String q = filter.toLowerCase(Locale.ROOT).trim();
 
         for (int i = 0; i < customers.size(); i++) {
@@ -246,6 +267,30 @@ public class MainActivity extends Activity {
             empty.setPadding(0, dp(35), 0, dp(35));
             listArea.addView(empty);
         }
+    }
+
+    private TextView statTile(String heading, String value, String symbol, int accent) {
+        LinearLayout tile = column();
+        tile.setGravity(Gravity.CENTER);
+        TextView icon = label(symbol, 18, true, accent);
+        icon.setGravity(Gravity.CENTER);
+        icon.setBackground(shape(Color.rgb(239, 245, 255), 0, 11));
+        tile.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(32)));
+        TextView number = label(value, 21, true, INK);
+        number.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
+        np.topMargin = dp(5);
+        tile.addView(number, np);
+        TextView caption = label(heading, 11, false, MUTED);
+        caption.setGravity(Gravity.CENTER);
+        tile.addView(caption);
+        return tile;
+    }
+
+    private int countAllProducts() {
+        int total = 0;
+        for (JSONObject c : customers) total += productCount(c);
+        return total;
     }
 
     private int productCount(JSONObject c) {
@@ -370,6 +415,10 @@ public class MainActivity extends Activity {
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
+        TextView section = label("পণ্যের তালিকা", 16, true, INK);
+        LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
+        sectionParams.bottomMargin = dp(5);
+        listArea.addView(section, sectionParams);
         JSONArray products = customers.get(selectedCustomer).optJSONArray("products");
         if (products == null) return;
         String q = filter.toLowerCase(Locale.ROOT).trim();
