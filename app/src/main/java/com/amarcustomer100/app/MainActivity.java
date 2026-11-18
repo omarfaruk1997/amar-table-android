@@ -162,17 +162,20 @@ public class MainActivity extends Activity {
         brand.setBackground(banner);
         brand.setElevation(dp(16));
         ImageView mark = new ImageView(this);
-        mark.setImageResource(R.drawable.ic_launcher);
+        mark.setImageResource(R.drawable.ic_brand_mark);
         mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
         mark.setBackground(shape(Color.rgb(255, 246, 220), Color.rgb(255, 226, 163), 17));
         mark.setPadding(dp(3), dp(3), dp(3), dp(3));
         mark.setElevation(dp(5));
-        mark.setContentDescription("আমার কাস্টমার অ্যাপ লোগো");
+        mark.setContentDescription("আমার কাস্টমার নতুন ব্র্যান্ড লোগো");
         brand.addView(mark, new LinearLayout.LayoutParams(dp(54), dp(54)));
 
         LinearLayout titles = column();
-        titles.setPadding(dp(12), 0, 0, 0);
-        titles.addView(label(title, 22, true, Color.WHITE));
+        titles.setPadding(dp(10), 0, 0, 0);
+        TextView heading = label(title, 18, true, Color.WHITE);
+        heading.setSingleLine(true);
+        heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        titles.addView(heading);
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
