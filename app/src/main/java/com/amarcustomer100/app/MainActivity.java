@@ -135,7 +135,7 @@ public class MainActivity extends Activity {
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(brand);
 
-        search = field("⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
+        search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
         search.setElevation(dp(1));
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
         sp.topMargin = dp(18);
@@ -293,6 +293,32 @@ public class MainActivity extends Activity {
         return total;
     }
 
+    private double sumProductPrices(JSONObject customer) {
+        JSONArray products = customer.optJSONArray("products");
+        if (products == null) return 0;
+        double total = 0;
+        for (int i = 0; i < products.length(); i++) {
+            JSONObject product = products.optJSONObject(i);
+            if (product == null) continue;
+            String raw = product.optString("price", "").trim();
+            StringBuilder normalized = new StringBuilder();
+            for (int j = 0; j < raw.length(); j++) {
+                char ch = raw.charAt(j);
+                if (ch >= '\\u09e6' && ch <= '\\u09ef') normalized.append((char)('0' + ch - '\\u09e6'));
+                else if (ch >= '\\u0660' && ch <= '\\u0669') normalized.append((char)('0' + ch - '\\u0660'));
+                else if (ch != ',' && ch != '৳' && ch != ' ') normalized.append(ch);
+            }
+            try { total += Double.parseDouble(normalized.toString()); }
+            catch (Exception ignored) {}
+        }
+        return total;
+    }
+
+    private String formatMoney(double amount) {
+        if (amount == Math.floor(amount)) return String.format(Locale.US, "%,.0f", amount);
+        return String.format(Locale.US, "%,.2f", amount);
+    }
+
     private int productCount(JSONObject c) {
         JSONArray a = c.optJSONArray("products");
         return a == null ? 0 : a.length();
@@ -408,6 +434,23 @@ public class MainActivity extends Activity {
         root.addView(back, 3, bp);
         back.setOnClickListener(v -> showCustomers());
 
+        LinearLayout summary = row();
+        summary.setPadding(dp(13), dp(12), dp(13), dp(12));
+        summary.setBackground(shape(Color.WHITE, Color.rgb(225, 234, 247), 17));
+        summary.setElevation(dp(2));
+        JSONArray currentProducts = c.optJSONArray("products");
+        int productTotal = currentProducts == null ? 0 : currentProducts.length();
+        summary.addView(statTile("মোট পণ্য", String.valueOf(productTotal), "▦", BLUE),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        View summaryDivider = new View(this);
+        summaryDivider.setBackgroundColor(BORDER);
+        summary.addView(summaryDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
+        summary.addView(statTile("পণ্যের মোট দাম", "৳ " + formatMoney(sumProductPrices(c)), "৳", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
+        summaryParams.bottomMargin = dp(12);
+        root.addView(summary, 4, summaryParams);
+
         renderProducts("");
         search.addTextChangedListener(watcher(s -> renderProducts(s)));
     }
@@ -502,7 +545,7 @@ public class MainActivity extends Activity {
                         p.put("price", pr);
                         if (index < 0) arr.put(p);
                         saveData();
-                        renderProducts(search.getText().toString());
+                        showProducts(selectedCustomer);
                     } catch (Exception ignored) {}
                 }
             })
