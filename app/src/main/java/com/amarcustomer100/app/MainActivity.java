@@ -103,9 +103,22 @@ public class MainActivity extends Activity {
         b.setGravity(Gravity.CENTER);
         b.setPadding(dp(14), dp(11), dp(14), dp(11));
         b.setBackground(shape(bg, 0, radius));
+        b.setElevation(dp(2));
         b.setClickable(true);
         b.setFocusable(true);
         return b;
+    }
+
+    private TextView primaryAction(String caption) {
+        TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
+        GradientDrawable premium = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.rgb(10, 43, 78), Color.rgb(15, 111, 119), Color.rgb(126, 91, 45)});
+        premium.setCornerRadius(dp(16));
+        premium.setStroke(dp(1), Color.rgb(55, 119, 132));
+        button.setBackground(premium);
+        button.setElevation(dp(5));
+        return button;
     }
 
     private EditText field(String hint, int inputType, boolean multiline) {
@@ -122,26 +135,27 @@ public class MainActivity extends Activity {
             e.setGravity(Gravity.TOP | Gravity.START);
         }
         e.setPadding(dp(14), dp(11), dp(14), dp(11));
-        e.setBackground(shape(Color.WHITE, BORDER, 12));
+        e.setBackground(shape(Color.WHITE, BORDER, 16));
+        e.setElevation(dp(1));
         return e;
     }
 
     private void base(String title, String subtitle) {
         root = column();
         root.setBackgroundColor(darkMode ? Color.rgb(15, 23, 36) : BG);
-        root.setPadding(dp(16), dp(16), dp(16), dp(12));
+        root.setPadding(dp(17), dp(18), dp(17), dp(14));
         setContentView(root);
         getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(15, 29, 52));
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(17), dp(19), dp(15), dp(19));
+        brand.setPadding(dp(18), dp(20), dp(15), dp(20));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{Color.rgb(5, 19, 43), Color.rgb(12, 91, 105), Color.rgb(158, 112, 47)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(10));
+        brand.setElevation(dp(12));
         TextView mark = label("সা", 23, true, Color.rgb(16, 38, 63));
         mark.setTextColor(Color.rgb(16, 38, 63));
         mark.setGravity(Gravity.CENTER);
@@ -162,10 +176,11 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("11.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("12.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১১.০");
-        version.setPadding(dp(10), dp(7), dp(10), dp(7));
+        version.setContentDescription("অ্যাপ সংস্করণ ১২.০");
+        version.setPadding(dp(11), dp(7), dp(11), dp(7));
+        version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
         TextView theme = label(darkMode ? "☀" : "☾", 20, true, Color.rgb(255, 226, 163));
@@ -186,7 +201,7 @@ public class MainActivity extends Activity {
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
         search.setElevation(dp(2));
         search.setSelectAllOnFocus(false);
-        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
+        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(52));
         sp.topMargin = dp(18);
         sp.bottomMargin = dp(12);
         root.addView(search, sp);
@@ -201,7 +216,7 @@ public class MainActivity extends Activity {
     private void showCustomers() {
         selectedCustomer = -1;
         base("কাস্টমার সাথী", "কাস্টমার, ঠিকানা ও যোগাযোগের তথ্য");
-        TextView add = action("+   নতুন কাস্টমার যোগ করুন", Color.rgb(31, 75, 110), Color.WHITE, 14);
+        TextView add = primaryAction("+   নতুন কাস্টমার যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
         ap.bottomMargin = dp(14);
@@ -265,9 +280,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(16), dp(15), dp(15), dp(14));
-            card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
-            card.setElevation(dp(7));
+            card.setPadding(dp(17), dp(16), dp(16), dp(15));
+            card.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 22));
+            card.setElevation(dp(8));
             card.setAlpha(0f);
             card.setTranslationY(dp(12));
             card.animate().alpha(1f).translationY(0f).setDuration(260).start();
@@ -275,7 +290,9 @@ public class MainActivity extends Activity {
             LinearLayout top = row();
             TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true, BLUE);
             avatar.setGravity(Gravity.CENTER);
-            avatar.setBackground(shape(Color.rgb(232, 241, 252), 0, 15));
+            avatar.setBackground(shape(Color.rgb(226, 239, 251), Color.rgb(209, 224, 241), 15));
+            avatar.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            avatar.setElevation(dp(1));
             top.addView(avatar, new LinearLayout.LayoutParams(dp(42), dp(42)));
             TextView customerName = label(name, 18, true, INK);
             LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, dp(42), 1);
@@ -343,7 +360,8 @@ public class MainActivity extends Activity {
         tile.setGravity(Gravity.CENTER);
         TextView icon = label(symbol, 18, true, accent);
         icon.setGravity(Gravity.CENTER);
-        icon.setBackground(shape(Color.rgb(239, 245, 255), 0, 11));
+        icon.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(222, 232, 244), 12));
+        icon.setElevation(dp(1));
         tile.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(32)));
         TextView number = label(value, 21, true, INK);
         number.setGravity(Gravity.CENTER);
@@ -495,7 +513,7 @@ public class MainActivity extends Activity {
         JSONObject c = customers.get(index);
         base(c.optString("name"), "এই কাস্টমারের পণ্যের তালিকা");
 
-        TextView add = action("+   নতুন পণ্য যোগ করুন", Color.rgb(31, 75, 110), Color.WHITE, 14);
+        TextView add = primaryAction("+   নতুন পণ্য যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
         ap.bottomMargin = dp(10);
@@ -591,9 +609,9 @@ public class MainActivity extends Activity {
             if (!name.toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = row();
-            card.setPadding(dp(15), dp(14), dp(11), dp(14));
-            card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 19));
-            card.setElevation(dp(4));
+            card.setPadding(dp(16), dp(15), dp(12), dp(15));
+            card.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 21));
+            card.setElevation(dp(6));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
             card.animate().alpha(1f).translationY(0f).setDuration(240).start();
