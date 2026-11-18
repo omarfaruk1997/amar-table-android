@@ -107,20 +107,27 @@ public class MainActivity extends Activity {
         setContentView(root);
 
         LinearLayout brand = row();
-        TextView mark = label("AC", 17, true, Color.WHITE);
+        brand.setPadding(dp(15), dp(14), dp(15), dp(14));
+        GradientDrawable banner = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.rgb(29, 78, 216), Color.rgb(14, 165, 233)});
+        banner.setCornerRadius(dp(20));
+        brand.setBackground(banner);
+        brand.setElevation(dp(3));
+        TextView mark = label("AC", 17, true, BLUE);
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(shape(BLUE, 0, 14));
+        mark.setBackground(shape(Color.WHITE, 0, 14));
         brand.addView(mark, new LinearLayout.LayoutParams(dp(46), dp(46)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
-        titles.addView(label(title, 23, true, INK));
-        TextView sub = label(subtitle, 12, false, MUTED);
+        titles.addView(label(title, 22, true, Color.WHITE));
+        TextView sub = label(subtitle, 12, false, Color.rgb(220, 235, 255));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(brand);
 
-        search = field("⌕   খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
+        search = field("⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
         sp.topMargin = dp(18);
         sp.bottomMargin = dp(12);
@@ -172,6 +179,7 @@ public class MainActivity extends Activity {
             LinearLayout card = column();
             card.setPadding(dp(15), dp(13), dp(13), dp(12));
             card.setBackground(shape(Color.WHITE, BORDER, 16));
+            card.setElevation(dp(2));
 
             LinearLayout top = row();
             TextView customerName = label(name, 18, true, INK);
@@ -363,6 +371,7 @@ public class MainActivity extends Activity {
             LinearLayout card = row();
             card.setPadding(dp(14), dp(12), dp(10), dp(12));
             card.setBackground(shape(Color.WHITE, BORDER, 15));
+            card.setElevation(dp(2));
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
             info.addView(label("দাম: " + price, 13, false, MUTED));
