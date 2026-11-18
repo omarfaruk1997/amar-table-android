@@ -135,16 +135,16 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(18), dp(19), dp(18), dp(19));
+        brand.setPadding(dp(17), dp(18), dp(15), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(8, 24, 48), Color.rgb(24, 70, 105), Color.rgb(112, 83, 43)});
+                new int[]{Color.rgb(7, 22, 46), Color.rgb(18, 82, 105), Color.rgb(125, 91, 43)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(8));
+        brand.setElevation(dp(10));
         TextView mark = label("সা", 22, true, Color.rgb(25, 61, 94));
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(shape(Color.rgb(235, 220, 187), 0, 15));
+        mark.setBackground(shape(Color.rgb(246, 231, 198), Color.rgb(196, 159, 91), 16));
         brand.addView(mark, new LinearLayout.LayoutParams(dp(50), dp(50)));
 
         LinearLayout titles = column();
@@ -153,8 +153,8 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("7.0", 12, true, Color.rgb(255, 226, 163));
-        version.setGravity(Gravity.CENTER);
+        TextView version = label("8.0", 12, true, Color.rgb(255, 226, 163));
+        version.setGravity(Gravity.CENTER);\n        version.setContentDescription("অ্যাপ সংস্করণ ৮.০");
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
-        search.setElevation(dp(1));
+        search.setElevation(dp(2));\n        search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
         sp.topMargin = dp(18);
         sp.bottomMargin = dp(12);
@@ -234,7 +234,7 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
-        TextView section = label("আপনার কাস্টমার তালিকা", 16, true, INK);
+        TextView section = label("আপনার কাস্টমার তালিকা  ·  " + customers.size() + " জন", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -249,9 +249,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(16), dp(15), dp(15), dp(13));
+            card.setPadding(dp(16), dp(15), dp(15), dp(14));
             card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
-            card.setElevation(dp(5));
+            card.setElevation(dp(6));
             card.setAlpha(0f);
             card.setTranslationY(dp(12));
             card.animate().alpha(1f).translationY(0f).setDuration(220).start();
@@ -542,7 +542,7 @@ public class MainActivity extends Activity {
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            TextView priceLabel = label("৳  " + price, 15, true, Color.rgb(177, 132, 49));
+            TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));\n            priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));\n            priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));\n            priceLabel.setGravity(Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
             priceParams.topMargin = dp(5);
             info.addView(priceLabel, priceParams);
