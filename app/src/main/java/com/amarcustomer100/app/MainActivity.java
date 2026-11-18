@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private static final int MUTED = Color.rgb(112, 125, 143);
     private static final int BLUE = Color.rgb(37, 99, 235);
     private static final int PALE = Color.rgb(232, 240, 255);
+    private static final int TEAL = Color.rgb(13, 148, 136);
     private static final int BORDER = Color.rgb(229, 234, 242);
 
     @Override public void onCreate(Bundle state) {
@@ -103,31 +104,32 @@ public class MainActivity extends Activity {
     private void base(String title, String subtitle) {
         root = column();
         root.setBackgroundColor(BG);
-        root.setPadding(dp(18), dp(18), dp(18), dp(12));
+        root.setPadding(dp(16), dp(16), dp(16), dp(12));
         setContentView(root);
 
         LinearLayout brand = row();
-        brand.setPadding(dp(15), dp(14), dp(15), dp(14));
+        brand.setPadding(dp(17), dp(17), dp(17), dp(17));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
                 new int[]{Color.rgb(29, 78, 216), Color.rgb(14, 165, 233)});
         banner.setCornerRadius(dp(20));
         brand.setBackground(banner);
-        brand.setElevation(dp(3));
-        TextView mark = label("AC", 17, true, BLUE);
+        brand.setElevation(dp(5));
+        TextView mark = label("✦", 23, true, BLUE);
         mark.setGravity(Gravity.CENTER);
         mark.setBackground(shape(Color.WHITE, 0, 14));
-        brand.addView(mark, new LinearLayout.LayoutParams(dp(46), dp(46)));
+        brand.addView(mark, new LinearLayout.LayoutParams(dp(50), dp(50)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
-        titles.addView(label(title, 22, true, Color.WHITE));
+        titles.addView(label(title, 23, true, Color.WHITE));
         TextView sub = label(subtitle, 12, false, Color.rgb(220, 235, 255));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
         root.addView(brand);
 
         search = field("⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
+        search.setElevation(dp(1));
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(50));
         sp.topMargin = dp(18);
         sp.bottomMargin = dp(12);
@@ -177,9 +179,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(15), dp(13), dp(13), dp(12));
-            card.setBackground(shape(Color.WHITE, BORDER, 16));
-            card.setElevation(dp(2));
+            card.setPadding(dp(16), dp(15), dp(14), dp(13));
+            card.setBackground(shape(Color.WHITE, Color.rgb(235, 240, 247), 19));
+            card.setElevation(dp(3));
 
             LinearLayout top = row();
             TextView customerName = label(name, 18, true, INK);
@@ -193,7 +195,7 @@ public class MainActivity extends Activity {
             adp.topMargin = dp(5);
             card.addView(addr, adp);
 
-            TextView count = label(productCount(c) + "টি পণ্য", 12, true, MUTED);
+            TextView count = label("▦  " + productCount(c) + "টি পণ্য", 12, true, BLUE);
             LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(30));
             countParams.topMargin = dp(4);
             card.addView(count, countParams);
@@ -370,12 +372,15 @@ public class MainActivity extends Activity {
             if (!name.toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = row();
-            card.setPadding(dp(14), dp(12), dp(10), dp(12));
-            card.setBackground(shape(Color.WHITE, BORDER, 15));
+            card.setPadding(dp(15), dp(14), dp(11), dp(14));
+            card.setBackground(shape(Color.WHITE, Color.rgb(235, 240, 247), 18));
             card.setElevation(dp(2));
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            info.addView(label("দাম: " + price, 13, false, MUTED));
+            TextView priceLabel = label("৳  " + price, 15, true, TEAL);
+            LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
+            priceParams.topMargin = dp(5);
+            info.addView(priceLabel, priceParams);
             card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
 
             TextView edit = action("✎", Color.rgb(232, 242, 255), Color.rgb(25, 95, 210), 13);
