@@ -118,10 +118,10 @@ public class MainActivity extends Activity {
         brand.setPadding(dp(18), dp(18), dp(18), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(15, 29, 52), Color.rgb(31, 75, 110)});
+                new int[]{Color.rgb(10, 22, 43), Color.rgb(29, 61, 91), Color.rgb(93, 71, 43)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(7));
+        brand.setElevation(dp(8));
         TextView mark = label("✦", 25, true, Color.rgb(190, 145, 63));
         mark.setGravity(Gravity.CENTER);
         mark.setBackground(shape(Color.WHITE, 0, 14));
@@ -133,6 +133,11 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(218, 203, 171));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView version = label("4.0", 12, true, Color.rgb(255, 226, 163));
+        version.setGravity(Gravity.CENTER);
+        version.setPadding(dp(10), dp(7), dp(10), dp(7));
+        version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
+        brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
@@ -196,7 +201,7 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
-        TextView section = label("✦   কাস্টমার তালিকা", 16, true, Color.rgb(35, 51, 76));
+        TextView section = label("✦   আপনার কাস্টমার তালিকা  ·  " + customers.size(), 16, true, Color.rgb(35, 51, 76));
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -213,7 +218,10 @@ public class MainActivity extends Activity {
             LinearLayout card = column();
             card.setPadding(dp(17), dp(16), dp(15), dp(14));
             card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
-            card.setElevation(dp(4));
+            card.setElevation(dp(5));
+            card.setAlpha(0f);
+            card.setTranslationY(dp(12));
+            card.animate().alpha(1f).translationY(0f).setDuration(220).start();
 
             LinearLayout top = row();
             TextView customerName = label(name, 18, true, INK);
@@ -458,7 +466,7 @@ public class MainActivity extends Activity {
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
-        TextView section = label("✦   পণ্যের তালিকা", 16, true, Color.rgb(35, 51, 76));
+        TextView section = label("✦   পণ্যের তালিকা  ·  " + productCount(customers.get(selectedCustomer)), 16, true, Color.rgb(35, 51, 76));
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -477,7 +485,10 @@ public class MainActivity extends Activity {
             LinearLayout card = row();
             card.setPadding(dp(15), dp(14), dp(11), dp(14));
             card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 19));
-            card.setElevation(dp(3));
+            card.setElevation(dp(4));
+            card.setAlpha(0f);
+            card.setTranslationY(dp(10));
+            card.animate().alpha(1f).translationY(0f).setDuration(200).start();
             LinearLayout info = column();
             info.addView(label(name, 16, true, Color.rgb(27, 42, 64)));
             TextView priceLabel = label("৳  " + price, 15, true, Color.rgb(151, 111, 42));
