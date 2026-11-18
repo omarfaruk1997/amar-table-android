@@ -82,6 +82,7 @@ public class MainActivity extends Activity {
         t.setTextColor(themedText(color));
         if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         t.setGravity(Gravity.CENTER_VERTICAL);
+        t.setIncludeFontPadding(false);
         return t;
     }
 
@@ -176,9 +177,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("12.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("13.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১২.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১৩.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -283,6 +284,7 @@ public class MainActivity extends Activity {
             card.setPadding(dp(17), dp(16), dp(16), dp(15));
             card.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 22));
             card.setElevation(dp(8));
+            card.setClipToOutline(true);
             card.setAlpha(0f);
             card.setTranslationY(dp(12));
             card.animate().alpha(1f).translationY(0f).setDuration(260).start();
@@ -347,12 +349,45 @@ public class MainActivity extends Activity {
             listArea.addView(card, cp);
         }
 
-        if (listArea.getChildCount() == 0) {
-            TextView empty = label(customers.isEmpty() ? "এখনও কোনো কাস্টমার যোগ করা হয়নি।" : "কোনো কাস্টমার পাওয়া যায়নি।", 14, false, MUTED);
-            empty.setGravity(Gravity.CENTER);
-            empty.setPadding(0, dp(35), 0, dp(35));
-            listArea.addView(empty);
+        if (listArea.getChildCount() == 1) {
+            boolean noCustomers = customers.isEmpty() && q.isEmpty();
+            LinearLayout empty = emptyState(noCustomers ? "♙" : "⌕",
+                    noCustomers ? "এখনও কোনো কাস্টমার নেই" : "কোনো কাস্টমার পাওয়া যায়নি",
+                    noCustomers ? "নতুন কাস্টমার যোগ করে আপনার তালিকা শুরু করুন।" : "নাম, ঠিকানা বা মোবাইল নম্বর দিয়ে আবার খুঁজুন।");
+            LinearLayout.LayoutParams emptyParams = new LinearLayout.LayoutParams(-1, -2);
+            emptyParams.topMargin = dp(12);
+            listArea.addView(empty, emptyParams);
         }
+    }
+
+    private LinearLayout emptyState(String symbol, String heading, String message) {
+        LinearLayout panel = column();
+        panel.setGravity(Gravity.CENTER);
+        panel.setPadding(dp(20), dp(25), dp(20), dp(25));
+        panel.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 22));
+        panel.setElevation(dp(3));
+
+        TextView icon = label(symbol, 30, true, Color.rgb(15, 111, 119));
+        icon.setGravity(Gravity.CENTER);
+        GradientDrawable iconBg = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{Color.rgb(231, 244, 247), Color.rgb(242, 237, 224)});
+        iconBg.setCornerRadius(dp(22));
+        icon.setBackground(iconBg);
+        panel.addView(icon, new LinearLayout.LayoutParams(dp(66), dp(66)));
+
+        TextView title = label(heading, 16, true, INK);
+        title.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
+        titleParams.topMargin = dp(13);
+        panel.addView(title, titleParams);
+
+        TextView detail = label(message, 13, false, MUTED);
+        detail.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams detailParams = new LinearLayout.LayoutParams(-1, -2);
+        detailParams.topMargin = dp(6);
+        panel.addView(detail, detailParams);
+        return panel;
     }
 
     private LinearLayout statTile(String heading, String value, String symbol, int accent) {
@@ -617,7 +652,8 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(240).start();
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
-            productMark.setBackground(shape(Color.rgb(232, 241, 252), 0, 12));
+            productMark.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(214, 228, 245), 12));
+            productMark.setElevation(dp(2));
             LinearLayout.LayoutParams productMarkParams = new LinearLayout.LayoutParams(dp(42), dp(44));
             productMarkParams.rightMargin = dp(11);
             card.addView(productMark, productMarkParams);
@@ -658,11 +694,14 @@ public class MainActivity extends Activity {
             listArea.addView(card, cp);
         }
 
-        if (listArea.getChildCount() == 0) {
-            TextView empty = label(products.length() == 0 ? "এই কাস্টমারের কোনো পণ্য নেই।" : "কোনো পণ্য পাওয়া যায়নি।", 14, false, MUTED);
-            empty.setGravity(Gravity.CENTER);
-            empty.setPadding(0, dp(30), 0, dp(30));
-            listArea.addView(empty);
+        if (listArea.getChildCount() == 1) {
+            boolean noProducts = products.length() == 0 && q.isEmpty();
+            LinearLayout empty = emptyState(noProducts ? "▦" : "⌕",
+                    noProducts ? "এখনও কোনো পণ্য নেই" : "কোনো পণ্য পাওয়া যায়নি",
+                    noProducts ? "নতুন পণ্য যোগ করলে এখানে দেখা যাবে।" : "পণ্যের নাম লিখে আবার খুঁজে দেখুন।");
+            LinearLayout.LayoutParams emptyParams = new LinearLayout.LayoutParams(-1, -2);
+            emptyParams.topMargin = dp(12);
+            listArea.addView(empty, emptyParams);
         }
     }
 
