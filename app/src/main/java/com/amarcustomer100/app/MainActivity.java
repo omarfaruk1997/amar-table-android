@@ -304,8 +304,8 @@ public class MainActivity extends Activity {
             StringBuilder normalized = new StringBuilder();
             for (int j = 0; j < raw.length(); j++) {
                 char ch = raw.charAt(j);
-                if (ch >= '\\u09e6' && ch <= '\\u09ef') normalized.append((char)('0' + ch - '\\u09e6'));
-                else if (ch >= '\\u0660' && ch <= '\\u0669') normalized.append((char)('0' + ch - '\\u0660'));
+                if (ch >= 0x09E6 && ch <= 0x09EF) normalized.append((char)('0' + ch - 0x09E6));
+                else if (ch >= 0x0660 && ch <= 0x0669) normalized.append((char)('0' + ch - 0x0660));
                 else if (ch != ',' && ch != '৳' && ch != ' ') normalized.append(ch);
             }
             try { total += Double.parseDouble(normalized.toString()); }
