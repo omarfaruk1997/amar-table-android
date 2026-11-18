@@ -8,7 +8,7 @@ android {
         applicationId 'com.amarcustomer100.app'
         minSdk 23
         targetSdk 28
-        versionCode 15
-        versionName '5.0'
+        versionCode 16
+        versionName '6.0'
     }
 }
