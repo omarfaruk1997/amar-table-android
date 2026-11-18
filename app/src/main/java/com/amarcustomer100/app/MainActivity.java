@@ -161,19 +161,14 @@ public class MainActivity extends Activity {
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(16));
-        TextView mark = label("সা", 23, true, Color.rgb(16, 38, 63));
-        mark.setTextColor(Color.rgb(16, 38, 63));
-        mark.setGravity(Gravity.CENTER);
-        mark.setTypeface(Typeface.create("sans-serif-black", Typeface.BOLD));
-        GradientDrawable markBg = new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.rgb(255, 246, 220), Color.rgb(231, 202, 145)});
-        markBg.setCornerRadius(dp(17));
-        markBg.setStroke(dp(1), Color.rgb(255, 226, 163));
-        mark.setBackground(markBg);
-        mark.setElevation(dp(3));
-        mark.setContentDescription("কাস্টমার সাথী লোগো");
-        brand.addView(mark, new LinearLayout.LayoutParams(dp(52), dp(52)));
+        ImageView mark = new ImageView(this);
+        mark.setImageResource(R.drawable.ic_launcher);
+        mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        mark.setBackground(shape(Color.rgb(255, 246, 220), Color.rgb(255, 226, 163), 17));
+        mark.setPadding(dp(3), dp(3), dp(3), dp(3));
+        mark.setElevation(dp(5));
+        mark.setContentDescription("সাথী প্রিমিয়াম অ্যাপ লোগো");
+        brand.addView(mark, new LinearLayout.LayoutParams(dp(54), dp(54)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
@@ -181,9 +176,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("16.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("17.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১৬.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১৭.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -221,7 +216,7 @@ public class MainActivity extends Activity {
 
     private void showCustomers() {
         selectedCustomer = -1;
-        base("কাস্টমার সাথী", "কাস্টমার, ঠিকানা ও যোগাযোগের তথ্য");
+        base("সাথী প্রিমিয়াম", "স্মার্ট কাস্টমার ম্যানেজার");
         TextView add = primaryAction("+   নতুন কাস্টমার যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
@@ -608,7 +603,7 @@ public class MainActivity extends Activity {
     private void shareCustomerReport(JSONObject customer) {
         try {
             StringBuilder report = new StringBuilder();
-            report.append("কাস্টমার সাথী — কাস্টমার রিপোর্ট\\n\\n");
+            report.append("সাথী প্রিমিয়াম — কাস্টমার রিপোর্ট\\n\\n");
             report.append("নাম: ").append(customer.optString("name")).append('\n');
             String address = customer.optString("address", "").trim();
             String phone = customer.optString("phone", "").trim();
