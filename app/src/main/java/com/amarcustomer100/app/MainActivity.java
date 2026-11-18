@@ -200,7 +200,7 @@ public class MainActivity extends Activity {
 
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
-            TextView edit = action("✓", PALE, BLUE, 11);
+            TextView edit = action("✎", PALE, BLUE, 11);
             TextView delete = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
             TextView call = action("☎", PALE, BLUE, 11);
             edit.setTextSize(22);
