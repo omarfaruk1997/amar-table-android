@@ -533,11 +533,11 @@ public class MainActivity extends Activity {
         try {
             StringBuilder report = new StringBuilder();
             report.append("কাস্টমার সাথী — কাস্টমার রিপোর্ট\\n\\n");
-            report.append("নাম: ").append(customer.optString("name")).append('\\n');
+            report.append("নাম: ").append(customer.optString("name")).append('\n');
             String address = customer.optString("address", "").trim();
             String phone = customer.optString("phone", "").trim();
-            if (!address.isEmpty()) report.append("ঠিকানা: ").append(address).append('\\n');
-            if (!phone.isEmpty()) report.append("মোবাইল: ").append(phone).append('\\n');
+            if (!address.isEmpty()) report.append("ঠিকানা: ").append(address).append('\n');
+            if (!phone.isEmpty()) report.append("মোবাইল: ").append(phone).append('\n');
             report.append("\\nপণ্যের তালিকা:\\n");
             JSONArray items = customer.optJSONArray("products");
             if (items != null && items.length() > 0) {
@@ -545,7 +545,7 @@ public class MainActivity extends Activity {
                     JSONObject item = items.optJSONObject(i);
                     if (item != null) report.append(i + 1).append(". ")
                         .append(item.optString("name")).append(" — ৳ ")
-                        .append(item.optString("price")).append('\\n');
+                        .append(item.optString("price")).append('\n');
                 }
             } else {
                 report.append("এখনও কোনো পণ্য যোগ করা হয়নি।\\n");
