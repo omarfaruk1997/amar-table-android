@@ -135,25 +135,25 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(18), dp(18), dp(18), dp(18));
+        brand.setPadding(dp(18), dp(19), dp(18), dp(19));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(10, 22, 43), Color.rgb(29, 61, 91), Color.rgb(93, 71, 43)});
+                new int[]{Color.rgb(8, 24, 48), Color.rgb(24, 70, 105), Color.rgb(112, 83, 43)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(8));
-        TextView mark = label("✦", 25, true, Color.rgb(190, 145, 63));
+        TextView mark = label("সা", 22, true, Color.rgb(25, 61, 94));
         mark.setGravity(Gravity.CENTER);
-        mark.setBackground(shape(Color.WHITE, 0, 14));
+        mark.setBackground(shape(Color.rgb(235, 220, 187), 0, 15));
         brand.addView(mark, new LinearLayout.LayoutParams(dp(50), dp(50)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(12), 0, 0, 0);
-        titles.addView(label(title, 23, true, Color.WHITE));
-        TextView sub = label(subtitle, 12, false, Color.rgb(218, 203, 171));
+        titles.addView(label(title, 22, true, Color.WHITE));
+        TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("6.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("7.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
         version.setPadding(dp(10), dp(7), dp(10), dp(7));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -212,7 +212,7 @@ public class MainActivity extends Activity {
         dashParams.bottomMargin = dp(12);
         root.addView(dashboard, 2, dashParams);
 
-        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(239, 233, 219), darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 14);
+        TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(239, 233, 219), darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 14);
         LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
         backupParams.bottomMargin = dp(12);
         root.addView(backup, 4, backupParams);
@@ -234,7 +234,7 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
-        TextView section = label("✦   আপনার কাস্টমার তালিকা  ·  " + customers.size(), 16, true, Color.rgb(35, 51, 76));
+        TextView section = label("আপনার কাস্টমার তালিকা", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -249,7 +249,7 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(17), dp(16), dp(15), dp(14));
+            card.setPadding(dp(16), dp(15), dp(15), dp(13));
             card.setBackground(shape(Color.WHITE, Color.rgb(228, 232, 239), 20));
             card.setElevation(dp(5));
             card.setAlpha(0f);
@@ -257,8 +257,14 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(220).start();
 
             LinearLayout top = row();
+            TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true, BLUE);
+            avatar.setGravity(Gravity.CENTER);
+            avatar.setBackground(shape(Color.rgb(232, 241, 252), 0, 15));
+            top.addView(avatar, new LinearLayout.LayoutParams(dp(42), dp(42)));
             TextView customerName = label(name, 18, true, INK);
-            top.addView(customerName, new LinearLayout.LayoutParams(0, dp(34), 1));
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+            nameParams.leftMargin = dp(11);
+            top.addView(customerName, nameParams);
 
             card.addView(top);
 
@@ -267,6 +273,12 @@ public class MainActivity extends Activity {
             LinearLayout.LayoutParams adp = new LinearLayout.LayoutParams(-1, -2);
             adp.topMargin = dp(5);
             card.addView(addr, adp);
+            if (!phone.trim().isEmpty()) {
+                TextView mobile = label("☎  " + phone, 13, false, TEAL);
+                LinearLayout.LayoutParams mobileParams = new LinearLayout.LayoutParams(-1, -2);
+                mobileParams.topMargin = dp(4);
+                card.addView(mobile, mobileParams);
+            }
 
             TextView count = label("▦  " + productCount(c) + "টি পণ্য", 12, true, BLUE);
             LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(30));
@@ -499,7 +511,7 @@ public class MainActivity extends Activity {
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
-        TextView section = label("✦   পণ্যের তালিকা  ·  " + productCount(customers.get(selectedCustomer)), 16, true, Color.rgb(35, 51, 76));
+        TextView section = label("পণ্যের তালিকা  ·  " + productCount(customers.get(selectedCustomer)) + "টি", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
@@ -522,9 +534,15 @@ public class MainActivity extends Activity {
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
             card.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            TextView productMark = label("▦", 20, true, BLUE);
+            productMark.setGravity(Gravity.CENTER);
+            productMark.setBackground(shape(Color.rgb(232, 241, 252), 0, 12));
+            LinearLayout.LayoutParams productMarkParams = new LinearLayout.LayoutParams(dp(42), dp(44));
+            productMarkParams.rightMargin = dp(11);
+            card.addView(productMark, productMarkParams);
             LinearLayout info = column();
-            info.addView(label(name, 16, true, Color.rgb(27, 42, 64)));
-            TextView priceLabel = label("৳  " + price, 15, true, Color.rgb(151, 111, 42));
+            info.addView(label(name, 16, true, INK));
+            TextView priceLabel = label("৳  " + price, 15, true, Color.rgb(177, 132, 49));
             LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
             priceParams.topMargin = dp(5);
             info.addView(priceLabel, priceParams);
