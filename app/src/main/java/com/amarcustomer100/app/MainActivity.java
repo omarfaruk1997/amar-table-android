@@ -269,7 +269,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private TextView statTile(String heading, String value, String symbol, int accent) {
+    private LinearLayout statTile(String heading, String value, String symbol, int accent) {
         LinearLayout tile = column();
         tile.setGravity(Gravity.CENTER);
         TextView icon = label(symbol, 18, true, accent);
