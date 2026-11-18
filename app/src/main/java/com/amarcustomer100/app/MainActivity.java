@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -104,7 +106,8 @@ public class MainActivity extends Activity {
         b.setGravity(Gravity.CENTER);
         b.setPadding(dp(14), dp(11), dp(14), dp(11));
         b.setBackground(shape(bg, 0, radius));
-        b.setElevation(dp(2));
+        b.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(55, 20, 80, 120)), null, shape(Color.WHITE, 0, radius)));
+        b.setElevation(dp(3));
         b.setClickable(true);
         b.setFocusable(true);
         return b;
@@ -118,7 +121,8 @@ public class MainActivity extends Activity {
         premium.setCornerRadius(dp(16));
         premium.setStroke(dp(1), Color.rgb(55, 119, 132));
         button.setBackground(premium);
-        button.setElevation(dp(5));
+        button.setElevation(dp(6));
+        button.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(75, 255, 255, 255)), null, shape(Color.WHITE, 0, 16)));
         return button;
     }
 
@@ -150,13 +154,13 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(18), dp(21), dp(15), dp(21));
+        brand.setPadding(dp(19), dp(23), dp(16), dp(23));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(5, 19, 43), Color.rgb(12, 91, 105), Color.rgb(158, 112, 47)});
+                new int[]{Color.rgb(4, 18, 43), Color.rgb(8, 105, 119), Color.rgb(183, 132, 57)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(14));
+        brand.setElevation(dp(16));
         TextView mark = label("সা", 23, true, Color.rgb(16, 38, 63));
         mark.setTextColor(Color.rgb(16, 38, 63));
         mark.setGravity(Gravity.CENTER);
@@ -177,9 +181,9 @@ public class MainActivity extends Activity {
         TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("14.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("16.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১৪.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১৬.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
@@ -284,10 +288,11 @@ public class MainActivity extends Activity {
             LinearLayout card = column();
             card.setPadding(dp(17), dp(16), dp(16), dp(15));
             card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
-            card.setElevation(dp(9));
+            card.setElevation(dp(10));
+            card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                    new int[]{Color.rgb(12, 82, 113), Color.rgb(19, 139, 132), Color.rgb(191, 145, 70)});
+                    new int[]{Color.rgb(8, 67, 112), Color.rgb(12, 151, 139), Color.rgb(210, 158, 75)});
             accentGradient.setCornerRadius(dp(3));
             accentLine.setBackground(accentGradient);
             LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(-1, dp(4));
@@ -655,7 +660,8 @@ public class MainActivity extends Activity {
             LinearLayout card = row();
             card.setPadding(dp(16), dp(15), dp(12), dp(15));
             card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 21));
-            card.setElevation(dp(8));
+            card.setElevation(dp(9));
+            card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
             card.animate().alpha(1f).translationY(0f).setDuration(240).start();
