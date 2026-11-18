@@ -7,6 +7,9 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -23,6 +26,8 @@ public class MainActivity extends Activity {
     private LinearLayout root, listArea;
     private EditText search;
     private int selectedCustomer = -1;
+    private static final int REQUEST_BACKUP_EXPORT = 7101;
+    private static final int REQUEST_BACKUP_IMPORT = 7102;
 
     private static final int BG = Color.rgb(245, 247, 251);
     private static final int INK = Color.rgb(25, 39, 58);
@@ -151,6 +156,12 @@ public class MainActivity extends Activity {
         ap.bottomMargin = dp(14);
         root.addView(add, 2, ap);
         add.setOnClickListener(v -> customerDialog(-1));
+
+        TextView backup = action("↕   ব্যাকআপ / পুনরুদ্ধার", Color.rgb(229, 242, 255), BLUE, 14);
+        LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
+        backupParams.bottomMargin = dp(12);
+        root.addView(backup, 3, backupParams);
+        backup.setOnClickListener(v -> showBackupOptions());
 
         renderCustomers("");
         search.addTextChangedListener(watcher(s -> renderCustomers(s)));
@@ -448,6 +459,90 @@ public class MainActivity extends Activity {
             })
             .setNegativeButton("বাতিল", null)
             .show();
+    }
+
+
+    private void showBackupOptions() {
+        new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার")
+            .setItems(new String[]{"ব্যাকআপ তৈরি করুন", "ব্যাকআপ থেকে তথ্য ফিরিয়ে আনুন"}, (dialog, which) -> {
+                if (which == 0) createBackupFile(); else chooseBackupFile();
+            }).setNegativeButton("বন্ধ", null).show();
+    }
+
+    private void createBackupFile() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, "CustomerSathi-Backup-" +
+            new java.text.SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(new java.util.Date()) + ".json");
+        startActivityForResult(intent, REQUEST_BACKUP_EXPORT);
+    }
+
+    private void chooseBackupFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(intent, REQUEST_BACKUP_IMPORT);
+    }
+
+    @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
+        Uri uri = data.getData();
+        if (requestCode == REQUEST_BACKUP_EXPORT) {
+            try {
+                JSONObject backup = new JSONObject();
+                backup.put("app", "Customer Sathi");
+                backup.put("version", 1);
+                backup.put("createdAt", System.currentTimeMillis());
+                JSONArray saved = new JSONArray();
+                for (JSONObject customer : customers) saved.put(customer);
+                backup.put("customers", saved);
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    if (out == null) throw new Exception("File unavailable");
+                    out.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+                }
+                Toast.makeText(this, "ব্যাকআপ সফলভাবে সংরক্ষণ হয়েছে।", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Toast.makeText(this, "ব্যাকআপ সংরক্ষণ ব্যর্থ হয়েছে।", Toast.LENGTH_LONG).show();
+            }
+        } else if (requestCode == REQUEST_BACKUP_IMPORT) importBackupFile(uri);
+    }
+
+    private void importBackupFile(Uri uri) {
+        try {
+            StringBuilder content = new StringBuilder();
+            try (InputStream in = getContentResolver().openInputStream(uri);
+                 java.io.BufferedReader reader = new java.io.BufferedReader(
+                     new java.io.InputStreamReader(in, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) content.append(line);
+            }
+            JSONObject backup = new JSONObject(content.toString());
+            JSONArray incoming = backup.optJSONArray("customers");
+            if (incoming == null) throw new Exception("Invalid backup");
+            ArrayList<JSONObject> checked = new ArrayList<>();
+            for (int i = 0; i < incoming.length(); i++) {
+                JSONObject customer = incoming.optJSONObject(i);
+                if (customer == null || customer.optString("name").trim().isEmpty())
+                    throw new Exception("Invalid customer");
+                if (customer.optJSONArray("products") == null) customer.put("products", new JSONArray());
+                checked.add(customer);
+            }
+            new AlertDialog.Builder(this).setTitle("ব্যাকআপ পুনরুদ্ধার করবেন?")
+                .setMessage("বর্তমান " + customers.size() + " জন কাস্টমারের তথ্যের জায়গায় ব্যাকআপের " +
+                    checked.size() + " জন কাস্টমারের তথ্য বসবে। বর্তমান তথ্য আগে ব্যাকআপ করে রাখুন।")
+                .setPositiveButton("পুনরুদ্ধার", (d, w) -> {
+                    customers.clear();
+                    customers.addAll(checked);
+                    saveData();
+                    showCustomers();
+                    Toast.makeText(this, "ব্যাকআপের তথ্য সফলভাবে ফিরিয়ে আনা হয়েছে।", Toast.LENGTH_LONG).show();
+                }).setNegativeButton("বাতিল", null).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "ফাইলটি সঠিক Customer Sathi ব্যাকআপ নয়।", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void saveData() {
