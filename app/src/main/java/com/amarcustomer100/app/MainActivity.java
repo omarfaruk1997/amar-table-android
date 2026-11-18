@@ -142,7 +142,7 @@ public class MainActivity extends Activity {
 
     private void showCustomers() {
         selectedCustomer = -1;
-        base("আমার কাস্টমার", "কাস্টমার, ঠিকানা ও যোগাযোগের তথ্য");
+        base("কাস্টমার সাথী", "কাস্টমার, ঠিকানা ও যোগাযোগের তথ্য");
         TextView add = action("+   নতুন কাস্টমার যোগ করুন", BLUE, Color.WHITE, 14);
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
         ap.topMargin = dp(8);
@@ -200,7 +200,7 @@ public class MainActivity extends Activity {
 
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
-            TextView edit = action("✎", PALE, BLUE, 11);
+            TextView edit = action("✏", Color.rgb(225, 239, 255), Color.rgb(22, 92, 210), 14);
             TextView delete = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
             TextView call = action("☎", PALE, BLUE, 11);
             edit.setTextSize(22);
@@ -377,7 +377,7 @@ public class MainActivity extends Activity {
             info.addView(label("দাম: " + price, 13, false, MUTED));
             card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
 
-            TextView edit = action("✓", PALE, BLUE, 11);
+            TextView edit = action("✏", Color.rgb(225, 239, 255), Color.rgb(22, 92, 210), 14);
             TextView del = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
             edit.setTextSize(22);
             del.setTextSize(20);
