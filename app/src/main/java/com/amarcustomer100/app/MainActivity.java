@@ -200,17 +200,18 @@ public class MainActivity extends Activity {
 
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
-            TextView edit = action("✏", Color.rgb(225, 239, 255), Color.rgb(22, 92, 210), 14);
-            TextView delete = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
-            TextView call = action("☎", PALE, BLUE, 11);
-            edit.setTextSize(22);
-            delete.setTextSize(20);
-            call.setTextSize(21);
+            actions.setPadding(0, dp(8), 0, dp(2));
+            TextView edit = action("✎", Color.rgb(232, 242, 255), Color.rgb(25, 95, 210), 13);
+            TextView delete = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
+            TextView call = action("☎", Color.rgb(229, 248, 244), Color.rgb(13, 148, 110), 13);
+            edit.setTextSize(25);
+            delete.setTextSize(21);
+            call.setTextSize(23);
             edit.setContentDescription("সম্পাদনা");
             delete.setContentDescription("মুছুন");
             call.setContentDescription("ফোন করুন");
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(46), 1);
-            bp.setMargins(dp(4), dp(3), dp(4), 0);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(54), dp(48));
+            bp.setMargins(dp(7), dp(2), dp(7), 0);
             actions.addView(edit, bp);
             actions.addView(delete, bp);
             actions.addView(call, bp);
@@ -377,14 +378,14 @@ public class MainActivity extends Activity {
             info.addView(label("দাম: " + price, 13, false, MUTED));
             card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
 
-            TextView edit = action("✏", Color.rgb(225, 239, 255), Color.rgb(22, 92, 210), 14);
-            TextView del = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
-            edit.setTextSize(22);
-            del.setTextSize(20);
+            TextView edit = action("✎", Color.rgb(232, 242, 255), Color.rgb(25, 95, 210), 13);
+            TextView del = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
+            edit.setTextSize(25);
+            del.setTextSize(21);
             edit.setContentDescription("বদল");
             del.setContentDescription("মুছুন");
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(48), dp(46));
-            bp.leftMargin = dp(6);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(52), dp(48));
+            bp.leftMargin = dp(8);
             card.addView(edit, bp);
             card.addView(del, bp);
             edit.setOnClickListener(v -> productDialog(ix));
