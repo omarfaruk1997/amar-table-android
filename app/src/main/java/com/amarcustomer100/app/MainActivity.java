@@ -185,27 +185,28 @@ public class MainActivity extends Activity {
             adp.topMargin = dp(5);
             card.addView(addr, adp);
 
-            LinearLayout bottom = row();
             TextView count = label(productCount(c) + "টি পণ্য", 12, true, MUTED);
-            bottom.addView(count, new LinearLayout.LayoutParams(0, dp(38), 1));
-            TextView edit = action("✎  সম্পাদনা", PALE, BLUE, 11);
-            TextView delete = action("▣  মুছুন", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
-            edit.setTextSize(15);
-            delete.setTextSize(15);
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(44), 1);
-            bp.leftMargin = dp(6);
-            bottom.addView(edit, bp);
-            bottom.addView(delete, bp);
-            card.addView(bottom);
+            LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(30));
+            countParams.topMargin = dp(4);
+            card.addView(count, countParams);
 
-            LinearLayout phoneRow = row();
-            phoneRow.setGravity(Gravity.CENTER);
-            TextView call = action("☎  ফোন করুন", PALE, BLUE, 11);
-            call.setTextSize(14);
-            LinearLayout.LayoutParams callParams = new LinearLayout.LayoutParams(dp(150), dp(40));
-            callParams.topMargin = dp(8);
-            phoneRow.addView(call, callParams);
-            card.addView(phoneRow);
+            LinearLayout actions = row();
+            actions.setGravity(Gravity.CENTER);
+            TextView edit = action("✓", PALE, BLUE, 11);
+            TextView delete = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
+            TextView call = action("☎", PALE, BLUE, 11);
+            edit.setTextSize(22);
+            delete.setTextSize(20);
+            call.setTextSize(21);
+            edit.setContentDescription("সম্পাদনা");
+            delete.setContentDescription("মুছুন");
+            call.setContentDescription("ফোন করুন");
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(46), 1);
+            bp.setMargins(dp(4), dp(3), dp(4), 0);
+            actions.addView(edit, bp);
+            actions.addView(delete, bp);
+            actions.addView(call, bp);
+            card.addView(actions);
             call.setOnClickListener(v -> dialCustomer(phone));
 
             card.setOnClickListener(v -> showProducts(index));
@@ -367,11 +368,13 @@ public class MainActivity extends Activity {
             info.addView(label("দাম: " + price, 13, false, MUTED));
             card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
 
-            TextView edit = action("✎  বদল", PALE, BLUE, 11);
-            TextView del = action("▣  মুছুন", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
-            edit.setTextSize(15);
-            del.setTextSize(15);
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-2, dp(44));
+            TextView edit = action("✓", PALE, BLUE, 11);
+            TextView del = action("🗑", Color.rgb(255, 239, 239), Color.rgb(190, 50, 50), 11);
+            edit.setTextSize(22);
+            del.setTextSize(20);
+            edit.setContentDescription("বদল");
+            del.setContentDescription("মুছুন");
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(48), dp(46));
             bp.leftMargin = dp(6);
             card.addView(edit, bp);
             card.addView(del, bp);
