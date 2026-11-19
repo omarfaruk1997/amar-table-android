@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
     }
 
     private TextView navItem(String symbol, String caption, boolean active) {
-        TextView item = label(symbol + "\\n" + caption, 12, true,
+        TextView item = label(symbol + "\n" + caption, 12, true,
                 active ? Color.rgb(255, 220, 151) : Color.rgb(211, 218, 228));
         item.setGravity(Gravity.CENTER);
         item.setLineSpacing(dp(1), 1f);
