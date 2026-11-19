@@ -194,9 +194,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("53.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("54.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৫৩.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৫৪.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -1889,6 +1889,9 @@ public class MainActivity extends Activity {
         addAnalyticsMetric(grid,"বিক্রি − খরচ (আনুমানিক)",periodTotal("sale",period)-periodExpenseTotal(period),ACCENTS[accentTheme]);
         LinearLayout.LayoutParams gp=new LinearLayout.LayoutParams(-1,-2); gp.topMargin=dp(12); gp.bottomMargin=dp(12); root.addView(grid,4,gp);
         listArea.removeAllViews();
+        TextView export=primaryAction("⇩   বিস্তারিত CSV রিপোর্ট সংরক্ষণ করুন");
+        LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,dp(43));ep.bottomMargin=dp(10);root.addView(export,5,ep);
+        export.setOnClickListener(v->{pendingReportPeriod=period;Intent out=new Intent(Intent.ACTION_CREATE_DOCUMENT);out.addCategory(Intent.CATEGORY_OPENABLE);out.setType("text/csv");out.putExtra(Intent.EXTRA_TITLE,"AmarCustomer-Analytics-"+period+".csv");startActivityForResult(out,REQUEST_REPORT_EXPORT);});
         listArea.addView(label("বিক্রির পারফরম্যান্স",16,true,INK));
         LinearLayout performance=column(); performance.setPadding(dp(14),dp(13),dp(14),dp(13)); performance.setBackground(shape(Color.WHITE,BORDER,18)); performance.setElevation(dp(3));
         double totalSales=periodTotal("sale",period), totalExpenses=periodExpenseTotal(period);
@@ -1901,10 +1904,112 @@ public class MainActivity extends Activity {
         for(JSONObject c:customers){JSONArray ps=c.optJSONArray("products"); if(ps==null)continue; for(int i=0;i<ps.length();i++){JSONObject p=ps.optJSONObject(i);if(p==null)continue;String cat=p.optString("category","অন্যান্য");categories.put(cat,categories.containsKey(cat)?categories.get(cat)+1:1);}}
         if(categories.isEmpty()) listArea.addView(emptyState("▦","পণ্য নেই","পণ্য যোগ করলে ক্যাটাগরি অনুযায়ী বিশ্লেষণ দেখা যাবে."));
         for(String cat:categories.keySet()){LinearLayout tile=row();tile.setPadding(dp(12),dp(11),dp(12),dp(11));tile.setBackground(shape(Color.WHITE,BORDER,13));tile.addView(label(cat,14,true,INK),new LinearLayout.LayoutParams(0,-2,1));tile.addView(label(categories.get(cat)+"টি পণ্য",13,true,ACCENTS[accentTheme]));LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=dp(6);listArea.addView(tile,tp);}
+        addAnalyticsTrendChart();
+        addAnalyticsRankings(period);
         listArea.addView(label("খরচের খাতভিত্তিক সারাংশ",16,true,INK));
         java.util.HashMap<String,Double> expenseMap=new java.util.HashMap<>();
         for(int i=0;i<expenses.length();i++){JSONObject e=expenses.optJSONObject(i);if(e==null||!inReportPeriod(e.optString("date"),period))continue;String cat=e.optString("category","অন্যান্য");expenseMap.put(cat,(expenseMap.containsKey(cat)?expenseMap.get(cat):0)+parseMoney(e.optString("amount")));}
         for(String cat:expenseMap.keySet()){listArea.addView(label(cat+"  •  ৳ "+formatMoney(expenseMap.get(cat)),13,false,MUTED));}
+    }
+
+
+    private void addAnalyticsTrendChart() {
+        listArea.addView(label("গত ৭ দিনের বিক্রি ও খরচ",16,true,INK));
+        View chart = new View(this) {
+            private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                int count = 7;
+                float width = getWidth(), height = getHeight();
+                float slot = width / count;
+                java.text.SimpleDateFormat dayKey = new java.text.SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+                java.text.SimpleDateFormat dayLabel = new java.text.SimpleDateFormat("dd", Locale.getDefault());
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                cal.set(java.util.Calendar.HOUR_OF_DAY,0); cal.set(java.util.Calendar.MINUTE,0);
+                cal.set(java.util.Calendar.SECOND,0); cal.set(java.util.Calendar.MILLISECOND,0);
+                cal.add(java.util.Calendar.DAY_OF_MONTH,-6);
+                double[] sales = new double[count], costs = new double[count];
+                double max = 1;
+                for (int d=0; d<count; d++) {
+                    String key = dayKey.format(cal.getTime());
+                    for (JSONObject customer : customers) {
+                        JSONArray entries = transactions(customer);
+                        for (int j=0;j<entries.length();j++) {
+                            JSONObject e=entries.optJSONObject(j);
+                            if(e==null || !key.equals(e.optString("date").length()>=10?e.optString("date").substring(0,10):"")) continue;
+                            if("sale".equals(e.optString("type"))) sales[d]+=parseMoney(e.optString("amount"));
+                        }
+                    }
+                    for(int j=0;j<expenses.length();j++) {
+                        JSONObject e=expenses.optJSONObject(j);
+                        if(e!=null && key.equals(e.optString("date").length()>=10?e.optString("date").substring(0,10):"")) costs[d]+=parseMoney(e.optString("amount"));
+                    }
+                    max=Math.max(max,Math.max(sales[d],costs[d]));
+                    cal.add(java.util.Calendar.DAY_OF_MONTH,1);
+                }
+                float base=height-dp(22), usable=height-dp(34);
+                for(int d=0;d<count;d++) {
+                    float x=slot*d+slot/2f;
+                    float sh=(float)(sales[d]/max)*usable, ch=(float)(costs[d]/max)*usable;
+                    p.setColor(ACCENTS[accentTheme]);
+                    canvas.drawRoundRect(x-dp(10),base-sh,x-dp(1),base,dp(4),dp(4),p);
+                    p.setColor(Color.rgb(204,151,77));
+                    canvas.drawRoundRect(x+dp(2),base-ch,x+dp(11),base,dp(4),dp(4),p);
+                    p.setColor(themedText(MUTED)); p.setTextSize(dp(9));
+                    java.util.Calendar labelCal=java.util.Calendar.getInstance();
+                    labelCal.set(java.util.Calendar.HOUR_OF_DAY,0);labelCal.set(java.util.Calendar.MINUTE,0);
+                    labelCal.set(java.util.Calendar.SECOND,0);labelCal.set(java.util.Calendar.MILLISECOND,0);
+                    labelCal.add(java.util.Calendar.DAY_OF_MONTH,d-6);
+                    String day=dayLabel.format(labelCal.getTime());
+                    canvas.drawText(day,x-dp(6),height-dp(4),p);
+                }
+            }
+        };
+        chart.setBackground(shape(Color.WHITE,BORDER,16));
+        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(145));
+        cp.topMargin=dp(8); cp.bottomMargin=dp(12); listArea.addView(chart,cp);
+        LinearLayout legend=row();
+        legend.addView(label("● বিক্রি",11,true,ACCENTS[accentTheme]),new LinearLayout.LayoutParams(0,-2,1));
+        legend.addView(label("● খরচ",11,true,Color.rgb(190,133,59)));
+        listArea.addView(legend);
+    }
+
+    private void addAnalyticsRankings(String period) {
+        java.util.HashMap<String,Double> customerSales=new java.util.HashMap<>();
+        java.util.HashMap<String,Double> productSales=new java.util.HashMap<>();
+        for(JSONObject customer:customers) {
+            JSONArray entries=transactions(customer);
+            double amount=0;
+            for(int i=0;i<entries.length();i++) {
+                JSONObject e=entries.optJSONObject(i);
+                if(e==null || !"sale".equals(e.optString("type")) || !inReportPeriod(e.optString("date"),period)) continue;
+                double value=parseMoney(e.optString("amount"));
+                amount+=value;
+                String product=e.optString("productName","").trim();
+                if(!product.isEmpty()) productSales.put(product,(productSales.containsKey(product)?productSales.get(product):0)+value);
+            }
+            if(amount>0) customerSales.put(customer.optString("name","অজানা"),amount);
+        }
+        listArea.addView(label("সেরা ৫ কাস্টমার (বিক্রির ভিত্তিতে)",16,true,INK));
+        addRankingRows(customerSales,"কাস্টমারের বিক্রি");
+        listArea.addView(label("সেরা ৫ বিক্রিত পণ্য",16,true,INK));
+        addRankingRows(productSales,"পণ্য বিক্রির মূল্য");
+        if(productSales.isEmpty()) listArea.addView(label("পণ্য নির্বাচন করে বিক্রির হিসাব যোগ করলে এখানে সেরা পণ্য দেখা যাবে।",12,false,MUTED));
+    }
+
+    private void addRankingRows(java.util.HashMap<String,Double> values,String description) {
+        java.util.ArrayList<String> names=new java.util.ArrayList<>(values.keySet());
+        java.util.Collections.sort(names,(a,b)->Double.compare(values.get(b),values.get(a)));
+        int limit=Math.min(5,names.size());
+        for(int i=0;i<limit;i++) {
+            String name=names.get(i);
+            LinearLayout item=row(); item.setPadding(dp(11),dp(9),dp(11),dp(9));
+            item.setBackground(shape(Color.WHITE,BORDER,13));
+            item.addView(label((i+1)+". "+name,13,true,INK),new LinearLayout.LayoutParams(0,-2,1));
+            item.addView(label("৳ "+formatMoney(values.get(name)),13,true,ACCENTS[accentTheme]));
+            LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,-2);rp.topMargin=dp(5);listArea.addView(item,rp);
+        }
+        if(names.isEmpty()) listArea.addView(label("এই সময়ের জন্য পর্যাপ্ত বিক্রির তথ্য নেই।",12,false,MUTED));
     }
 
     private void addAnalyticsMetric(LinearLayout parent,String title,double amount,int color){
