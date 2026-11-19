@@ -185,9 +185,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("26.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("27.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৬.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৭.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -403,6 +403,14 @@ public class MainActivity extends Activity {
         expenseButton.setOnClickListener(v -> showExpenses(""));
 
         // Backup and restore must always remain the final home-screen action.
+        TextView stockButton = action("▦   পণ্যের স্টক ব্যবস্থাপনা",
+                darkMode ? Color.rgb(34, 57, 75) : Color.rgb(231, 242, 251),
+                darkMode ? Color.rgb(176, 218, 245) : Color.rgb(27, 70, 132), 15);
+        LinearLayout.LayoutParams stockParams = new LinearLayout.LayoutParams(-1, dp(48));
+        stockParams.bottomMargin = dp(9);
+        homeActions.addView(stockButton, stockParams);
+        stockButton.setOnClickListener(v -> showStockManagement());
+
         TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
                 darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
                 darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
@@ -414,6 +422,114 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams homeActionsParams = new LinearLayout.LayoutParams(-1, -2);
         homeActionsParams.topMargin = dp(8);
         listArea.addView(homeActions, homeActionsParams);
+    }
+
+    private int countLowStock() {
+        int count = 0;
+        for (JSONObject customer : customers) {
+            JSONArray products = customer.optJSONArray("products");
+            if (products == null) continue;
+            for (int i = 0; i < products.length(); i++) {
+                JSONObject product = products.optJSONObject(i);
+                if (product != null && parseMoney(product.optString("stock", "0")) <= 3) count++;
+            }
+        }
+        return count;
+    }
+
+    private void showStockManagement() {
+        selectedCustomer = -1;
+        base("পণ্যের স্টক ব্যবস্থাপনা", "মজুত দেখুন, পরিমাণ সংশোধন ও কম স্টক শনাক্ত করুন");
+        search.setVisibility(View.GONE);
+        TextView back = action("←   হোমে ফিরুন", Color.WHITE, INK, 12);
+        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(42));
+        backParams.bottomMargin = dp(12);
+        root.addView(back, 2, backParams);
+        back.setOnClickListener(v -> showCustomers());
+
+        LinearLayout summary = row();
+        summary.setPadding(dp(12), dp(14), dp(12), dp(14));
+        summary.setBackground(shape(Color.WHITE, BORDER, 18));
+        int total = countAllProducts();
+        int low = countLowStock();
+        summary.addView(statTile("মোট পণ্য", String.valueOf(total), "▦", BLUE),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        summary.addView(statTile("কম / শেষ স্টক", String.valueOf(low), "!", Color.rgb(190, 85, 55)),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
+        summaryParams.bottomMargin = dp(12);
+        root.addView(summary, summaryParams);
+
+        listArea.removeAllViews();
+        listArea.addView(label("সব কাস্টমারের পণ্যের মজুত", 16, true, INK));
+        boolean found = false;
+        for (int ci = 0; ci < customers.size(); ci++) {
+            JSONObject customer = customers.get(ci);
+            JSONArray products = customer.optJSONArray("products");
+            if (products == null) continue;
+            for (int pi = 0; pi < products.length(); pi++) {
+                JSONObject product = products.optJSONObject(pi);
+                if (product == null) continue;
+                found = true;
+                String stock = product.optString("stock", "0");
+                boolean lowStock = parseMoney(stock) <= 3;
+                LinearLayout card = column();
+                card.setPadding(dp(14), dp(13), dp(14), dp(13));
+                card.setBackground(shape(Color.WHITE, BORDER, 17));
+                card.setElevation(dp(3));
+                LinearLayout top = row();
+                top.addView(label(product.optString("name"), 15, true, INK),
+                        new LinearLayout.LayoutParams(0, -2, 1));
+                top.addView(label("মজুত: " + stock + " টি", 14, true,
+                        lowStock ? Color.rgb(190, 75, 55) : TEAL));
+                card.addView(top);
+                TextView owner = label("কাস্টমার: " + customer.optString("name")
+                        + (lowStock ? "   •   স্টক কম" : ""), 12, false, MUTED);
+                LinearLayout.LayoutParams ownerParams = new LinearLayout.LayoutParams(-1, -2);
+                ownerParams.topMargin = dp(5);
+                card.addView(owner, ownerParams);
+                TextView adjust = action("＋   স্টক যোগ / পরিমাণ পরিবর্তন",
+                        darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
+                        darkMode ? Color.rgb(186, 216, 255) : BLUE, 12);
+                LinearLayout.LayoutParams adjustParams = new LinearLayout.LayoutParams(-1, dp(40));
+                adjustParams.topMargin = dp(9);
+                card.addView(adjust, adjustParams);
+                final int customerIndex = ci, productIndex = pi;
+                adjust.setOnClickListener(v -> stockDialog(customerIndex, productIndex));
+                LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
+                cardParams.bottomMargin = dp(9);
+                listArea.addView(card, cardParams);
+            }
+        }
+        if (!found) listArea.addView(emptyState("▦", "কোনো পণ্য নেই", "কাস্টমারের তালিকা থেকে পণ্য যোগ করুন।"));
+    }
+
+    private void stockDialog(int customerIndex, int productIndex) {
+        JSONObject customer = customers.get(customerIndex);
+        JSONArray products = customer.optJSONArray("products");
+        if (products == null) return;
+        JSONObject product = products.optJSONObject(productIndex);
+        if (product == null) return;
+        EditText quantity = field("নতুন মোট মজুতের পরিমাণ", android.text.InputType.TYPE_CLASS_NUMBER, false);
+        quantity.setText(product.optString("stock", "0"));
+        new AlertDialog.Builder(this).setTitle(product.optString("name") + " — স্টক")
+            .setMessage("এখানে বর্তমান মোট মজুতের সংখ্যা লিখুন।")
+            .setView(quantity)
+            .setPositiveButton("সংরক্ষণ", (d, w) -> {
+                String value = quantity.getText().toString().trim();
+                if (value.isEmpty()) {
+                    Toast.makeText(this, "স্টকের পরিমাণ লিখুন।", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    product.put("stock", value);
+                    saveData();
+                    showStockManagement();
+                    Toast.makeText(this, "স্টকের পরিমাণ আপডেট হয়েছে।", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "স্টক আপডেট করা যায়নি।", Toast.LENGTH_SHORT).show();
+                }
+            }).setNegativeButton("বাতিল", null).show();
     }
 
     private LinearLayout emptyState(String symbol, String heading, String message) {
