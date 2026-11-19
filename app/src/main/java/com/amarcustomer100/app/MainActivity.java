@@ -85,7 +85,8 @@ public class MainActivity extends Activity {
         t.setText(value);
         t.setTextSize(size);
         t.setTextColor(themedText(color));
-        if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        t.setFontFeatureSettings("kern");
+        t.setTypeface(Typeface.create("sans-serif", bold ? Typeface.BOLD : Typeface.NORMAL));
         t.setGravity(Gravity.CENTER_VERTICAL);
         t.setIncludeFontPadding(false);
         t.setLetterSpacing(0.005f);
@@ -151,24 +152,24 @@ public class MainActivity extends Activity {
 
     private void base(String title, String subtitle) {
         root = column();
-        root.setBackgroundColor(darkMode ? Color.rgb(15, 23, 36) : BG);
-        root.setPadding(dp(16), dp(16), dp(16), dp(14));
+        root.setBackgroundColor(darkMode ? Color.rgb(11, 19, 32) : Color.rgb(244, 241, 234));
+        root.setPadding(dp(16), dp(18), dp(16), dp(14));
         setContentView(root);
         getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(10, 23, 43));
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 244, 238));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(16), dp(18), dp(13), dp(18));
+        brand.setPadding(dp(16), dp(17), dp(13), dp(17));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(7, 20, 39), Color.rgb(19, 43, 72), Color.rgb(156, 119, 58)});
+                new int[]{Color.rgb(6, 18, 36), Color.rgb(16, 39, 68), Color.rgb(111, 83, 43)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(12));
+        brand.setElevation(dp(8));
         ImageView mark = new ImageView(this);
         mark.setImageResource(R.drawable.ic_brand_mark);
         mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        mark.setBackground(shape(Color.rgb(7, 26, 53), Color.rgb(218, 180, 104), 17));
+        mark.setBackground(shape(Color.rgb(8, 25, 48), Color.rgb(225, 190, 119), 16));
         mark.setPadding(dp(3), dp(3), dp(3), dp(3));
         mark.setElevation(dp(5));
         mark.setContentDescription("আমার কাস্টমার নতুন ব্র্যান্ড লোগো");
@@ -176,18 +177,18 @@ public class MainActivity extends Activity {
 
         LinearLayout titles = column();
         titles.setPadding(dp(10), 0, 0, 0);
-        TextView heading = label(title, 19, true, Color.WHITE);
+        TextView heading = label(title, 20, true, Color.WHITE);
         heading.setSingleLine(true);
         heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(heading);
-        TextView sub = label(subtitle, 11, false, Color.rgb(239, 220, 177));
+        TextView sub = label(subtitle, 12, false, Color.rgb(239, 220, 177));
         sub.setSingleLine(true);
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("25.1", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("25.2", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৫.১");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৫.২");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(202, 164, 91), 20));
@@ -208,8 +209,11 @@ public class MainActivity extends Activity {
         root.addView(brand);
 
         search = field(selectedCustomer >= 0 ? "⌕   পণ্যের নাম লিখে খুঁজুন..." : "⌕   নাম, ঠিকানা বা নম্বর লিখে খুঁজুন...",  android.text.InputType.TYPE_CLASS_TEXT, false);
-        search.setElevation(dp(3));
-        search.setBackground(shape(Color.WHITE, Color.rgb(207, 220, 234), 18));
+        search.setElevation(dp(2));
+        search.setTextColor(darkMode ? Color.rgb(242, 235, 220) : Color.rgb(20, 35, 55));
+        search.setHintTextColor(darkMode ? Color.rgb(164, 174, 188) : Color.rgb(125, 125, 119));
+        search.setBackground(shape(darkMode ? Color.rgb(28, 42, 60) : Color.rgb(255, 254, 250),
+                darkMode ? Color.rgb(78, 91, 108) : Color.rgb(211, 195, 164), 17));
         search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(52));
         sp.topMargin = dp(15);
@@ -244,9 +248,10 @@ public class MainActivity extends Activity {
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
         LinearLayout dashboard = row();
-        dashboard.setPadding(dp(10), dp(14), dp(10), dp(14));
-        dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
-        dashboard.setElevation(dp(5));
+        dashboard.setPadding(dp(10), dp(15), dp(10), dp(15));
+        dashboard.setBackground(shape(darkMode ? Color.rgb(27, 40, 58) : Color.rgb(255, 254, 250),
+                darkMode ? Color.rgb(76, 83, 91) : Color.rgb(215, 198, 164), 21));
+        dashboard.setElevation(dp(4));
         dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
         View statDivider = new View(this);
@@ -278,9 +283,10 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(17), dp(16), dp(16), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(225, 215, 192), 22));
-            card.setElevation(dp(7));
+            card.setPadding(dp(17), dp(17), dp(16), dp(15));
+            card.setBackground(shape(darkMode ? Color.rgb(25, 38, 56) : Color.rgb(255, 254, 250),
+                    darkMode ? Color.rgb(68, 82, 101) : Color.rgb(218, 202, 171), 22));
+            card.setElevation(dp(5));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -296,9 +302,11 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(260).start();
 
             LinearLayout top = row();
-            TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true, BLUE);
+            TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true,
+                    darkMode ? Color.rgb(255, 222, 159) : Color.rgb(21, 43, 70));
             avatar.setGravity(Gravity.CENTER);
-            avatar.setBackground(shape(Color.rgb(245, 237, 218), Color.rgb(224, 207, 169), 15));
+            avatar.setBackground(shape(darkMode ? Color.rgb(64, 57, 43) : Color.rgb(248, 240, 221),
+                    Color.rgb(205, 174, 117), 15));
             avatar.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             avatar.setElevation(dp(1));
             top.addView(avatar, new LinearLayout.LayoutParams(dp(42), dp(42)));
@@ -328,7 +336,8 @@ public class MainActivity extends Activity {
 
             LinearLayout finance = row();
             finance.setPadding(dp(10), dp(8), dp(10), dp(8));
-            finance.setBackground(shape(darkMode ? Color.rgb(42, 48, 57) : Color.rgb(247, 244, 237), darkMode ? Color.rgb(83, 74, 56) : Color.rgb(231, 220, 198), 12));
+            finance.setBackground(shape(darkMode ? Color.rgb(36, 47, 62) : Color.rgb(247, 244, 236),
+                    darkMode ? Color.rgb(94, 82, 59) : Color.rgb(225, 211, 184), 13));
             TextView dueInfo = label("বকেয়া ৳ " + formatMoney(customerDue(c)), 12, true,
                     customerDue(c) > 0 ? (darkMode ? Color.rgb(255, 174, 164) : Color.rgb(178, 63, 55)) : TEAL);
             finance.addView(dueInfo, new LinearLayout.LayoutParams(0, -2, 1));
@@ -342,9 +351,11 @@ public class MainActivity extends Activity {
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
             actions.setPadding(0, dp(8), 0, dp(2));
-            TextView edit = action("✎", Color.rgb(245, 239, 226), Color.rgb(23, 43, 70), 13);
-            TextView delete = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
-            TextView call = action("☎", Color.rgb(244, 239, 226), Color.rgb(153, 112, 48), 13);
+            TextView edit = action("✎", darkMode ? Color.rgb(48, 62, 80) : Color.rgb(239, 234, 222),
+                    darkMode ? Color.rgb(238, 218, 179) : Color.rgb(23, 43, 70), 13);
+            TextView delete = action("🗑", darkMode ? Color.rgb(72, 43, 47) : Color.rgb(255, 239, 237), Color.rgb(190, 45, 55), 13);
+            TextView call = action("☎", darkMode ? Color.rgb(63, 56, 43) : Color.rgb(247, 240, 224),
+                    darkMode ? Color.rgb(255, 220, 153) : Color.rgb(133, 96, 43), 13);
             edit.setTextSize(25);
             delete.setTextSize(21);
             call.setTextSize(23);
