@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
         t.setTypeface(Typeface.create("sans-serif", bold ? Typeface.BOLD : Typeface.NORMAL));
         t.setGravity(Gravity.CENTER_VERTICAL);
         t.setIncludeFontPadding(false);
-        t.setLetterSpacing(0.005f);
+        t.setLetterSpacing(0.012f);
         return t;
     }
 
@@ -123,11 +123,11 @@ public class MainActivity extends Activity {
         TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
         GradientDrawable premium = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(7, 20, 39), Color.rgb(17, 39, 66), Color.rgb(49, 54, 61), Color.rgb(151, 111, 49)});
+                new int[]{Color.rgb(5, 17, 34), Color.rgb(13, 34, 59), Color.rgb(42, 53, 66), Color.rgb(171, 128, 57)});
         premium.setCornerRadius(dp(18));
-        premium.setStroke(dp(1), Color.rgb(204, 169, 105));
+        premium.setStroke(dp(1), Color.rgb(224, 190, 126));
         button.setBackground(premium);
-        button.setElevation(dp(6));
+        button.setElevation(dp(7));
         button.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(75, 255, 255, 255)), null, shape(Color.WHITE, 0, 16)));
         return button;
     }
@@ -166,9 +166,9 @@ public class MainActivity extends Activity {
         brand.setPadding(dp(16), dp(16), dp(13), dp(16));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(4, 14, 30), Color.rgb(10, 29, 53), Color.rgb(25, 44, 63), Color.rgb(126, 88, 39)});
+                new int[]{Color.rgb(3, 13, 29), Color.rgb(9, 27, 51), Color.rgb(24, 43, 63), Color.rgb(139, 98, 43)});
         banner.setCornerRadius(dp(24));
-        banner.setStroke(dp(1), Color.rgb(180, 143, 79));
+        banner.setStroke(dp(1), Color.rgb(207, 170, 105));
         brand.setBackground(banner);
         brand.setElevation(dp(8));
         ImageView mark = new ImageView(this);
@@ -192,9 +192,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("51.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("100.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৫১.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ১০০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(202, 164, 91), 20));
@@ -245,7 +245,7 @@ public class MainActivity extends Activity {
         navBg.setCornerRadius(dp(21));
         navBg.setStroke(dp(1), Color.rgb(170, 132, 67));
         nav.setBackground(navBg);
-        nav.setElevation(dp(8));
+        nav.setElevation(dp(9));
         TextView home = navItem("⌂", "হোম", screenTitle.equals("আমার কাস্টমার"));
         TextView reports = navItem("▤", "রিপোর্ট", screenTitle.contains("রিপোর্ট"));
         TextView expensesNav = navItem("▣", "খরচ", screenTitle.contains("খরচ"));

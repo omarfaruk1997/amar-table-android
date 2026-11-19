@@ -8,9 +8,9 @@ android {
         applicationId 'com.amarcustomer100.app'
         minSdk 23
         targetSdk 28
-        versionCode 96
-        versionName '51.0'
+        versionCode 145
+        versionName '100.0'
     }
 }
 
-// V51.0: premium visual refinement only; existing features and data schema retained.
+// V100.0: Luxury Navy & Gold premium visual polish; existing features and data schema retained.
