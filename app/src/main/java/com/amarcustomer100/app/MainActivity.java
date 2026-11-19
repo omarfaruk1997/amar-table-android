@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
         brand.setPadding(dp(16), dp(16), dp(13), dp(16));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(5, 16, 32), Color.rgb(12, 34, 61), Color.rgb(31, 43, 55), Color.rgb(111, 79, 37)});
+                new int[]{Color.rgb(4, 14, 30), Color.rgb(10, 29, 53), Color.rgb(25, 44, 63), Color.rgb(126, 88, 39)});
         banner.setCornerRadius(dp(24));
         banner.setStroke(dp(1), Color.rgb(180, 143, 79));
         brand.setBackground(banner);
@@ -238,10 +238,10 @@ public class MainActivity extends Activity {
     private void addPremiumBottomNav(String screenTitle) {
         LinearLayout nav = row();
         nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(7), dp(7), dp(7), dp(7));
+        nav.setPadding(dp(8), dp(8), dp(8), dp(8));
         GradientDrawable navBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                darkMode ? new int[]{Color.rgb(10, 22, 39), Color.rgb(23, 37, 54)}
-                         : new int[]{Color.rgb(12, 29, 51), Color.rgb(25, 43, 63)});
+                darkMode ? new int[]{Color.rgb(7, 17, 31), Color.rgb(16, 31, 49)}
+                         : new int[]{Color.rgb(7, 19, 37), Color.rgb(17, 35, 57)});
         navBg.setCornerRadius(dp(21));
         navBg.setStroke(dp(1), Color.rgb(170, 132, 67));
         nav.setBackground(navBg);
@@ -252,9 +252,9 @@ public class MainActivity extends Activity {
         nav.addView(home, new LinearLayout.LayoutParams(0, dp(48), 1));
         nav.addView(reports, new LinearLayout.LayoutParams(0, dp(48), 1));
         nav.addView(expensesNav, new LinearLayout.LayoutParams(0, dp(48), 1));
-        LinearLayout.LayoutParams navParams = new LinearLayout.LayoutParams(-1, dp(62));
-        navParams.topMargin = dp(9);
-        navParams.bottomMargin = dp(3);
+        LinearLayout.LayoutParams navParams = new LinearLayout.LayoutParams(-1, dp(64));
+        navParams.topMargin = dp(8);
+        navParams.bottomMargin = dp(2);
         root.addView(nav, navParams);
         home.setOnClickListener(v -> showCustomers());
         reports.setOnClickListener(v -> showBusinessReport("month"));
@@ -268,7 +268,7 @@ public class MainActivity extends Activity {
         item.setLineSpacing(dp(1), 1f);
         if (active) {
             GradientDrawable selected = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                    new int[]{Color.rgb(48, 54, 58), Color.rgb(35, 44, 55)});
+                    new int[]{Color.rgb(54, 58, 59), Color.rgb(31, 42, 55)});
             selected.setCornerRadius(dp(15));
             selected.setStroke(dp(1), Color.rgb(199, 158, 85));
             item.setBackground(selected);
