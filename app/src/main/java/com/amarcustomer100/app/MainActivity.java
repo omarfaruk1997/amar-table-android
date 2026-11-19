@@ -1629,7 +1629,7 @@ public class MainActivity extends Activity {
             gold.setColor(Color.rgb(232,198,128));gold.setTypeface(Typeface.DEFAULT_BOLD);gold.setTextSize(13);
             canvas.drawText("PREMIUM SALES INVOICE",42,133,gold);
             String invoiceNo=nextDocumentNumber("INV");
-            p.setColor(Color.rgb(31,44,62));p.setTypeface(Typeface.BOLD);p.setTextSize(19);
+            p.setColor(Color.rgb(31,44,62));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(19);
             canvas.drawText("বিক্রয় ইনভয়েস",42,205,p);
             p.setTypeface(Typeface.DEFAULT);p.setTextSize(12);
             canvas.drawText("ইনভয়েস নম্বর: "+invoiceNo,42,235,p);
@@ -1638,7 +1638,7 @@ public class MainActivity extends Activity {
             canvas.drawText("মোবাইল: "+customer.optString("phone","—"),42,318,p);
             canvas.drawText("ঠিকানা: "+customer.optString("address","—"),42,341,p);
             p.setColor(Color.rgb(8,25,54));canvas.drawRect(42,372,553,405,p);
-            p.setColor(Color.WHITE);p.setTypeface(Typeface.BOLD);p.setTextSize(12);
+            p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(12);
             canvas.drawText("বিবরণ",52,393,p);canvas.drawText("পরিমাণ",300,393,p);
             canvas.drawText("একক মূল্য",380,393,p);canvas.drawText("মোট",490,393,p);
             String product=sale.optString("productName","").trim();
@@ -1652,7 +1652,7 @@ public class MainActivity extends Activity {
             canvas.drawText("৳ "+formatMoney(unitPrice),380,440,p);
             canvas.drawText("৳ "+formatMoney(total),480,440,p);
             p.setColor(Color.rgb(220,226,234));canvas.drawRect(42,461,553,463,p);
-            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.BOLD);p.setTextSize(18);
+            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(18);
             canvas.drawText("সর্বমোট: ৳ "+formatMoney(total),355,505,p);
             p.setColor(Color.rgb(40,54,72));p.setTypeface(Typeface.DEFAULT);p.setTextSize(12);
             canvas.drawText("কাস্টমারের বর্তমান বকেয়া: ৳ "+formatMoney(customerDue(customer)),42,552,p);
@@ -2129,7 +2129,7 @@ public class MainActivity extends Activity {
             canvas.drawText(getPreferences(MODE_PRIVATE).getString("shop_address",""),42,104,p);
             gold.setColor(Color.rgb(226,190,119));gold.setTextSize(13);gold.setTypeface(Typeface.DEFAULT_BOLD);
             canvas.drawText("MONEY RECEIPT",42,132,gold);
-            p.setColor(Color.rgb(30,43,60));p.setTextSize(18);p.setTypeface(Typeface.BOLD);
+            p.setColor(Color.rgb(30,43,60));p.setTextSize(18);p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
             canvas.drawText("টাকা জমার রসিদ",42,205,p);
             p.setTextSize(12);p.setTypeface(Typeface.DEFAULT);
             String receiptNo=nextDocumentNumber("RCT");
@@ -2141,7 +2141,7 @@ public class MainActivity extends Activity {
             p.setColor(Color.rgb(30,43,60));p.setTextSize(14);
             canvas.drawText("জমার বিবরণ",45,383,p);canvas.drawText(payment.optString("note","টাকা জমা"),45,413,p);
             canvas.drawText("পেমেন্টের পরিমাণ",45,465,p);
-            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.BOLD);p.setTextSize(23);
+            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(23);
             canvas.drawText("৳ "+formatMoney(parseMoney(payment.optString("amount"))),365,470,p);
             p.setColor(Color.rgb(30,43,60));p.setTypeface(Typeface.DEFAULT);p.setTextSize(13);
             canvas.drawText("এ পর্যন্ত মোট জমা: ৳ "+formatMoney(sumTransactions(customer,"payment")),42,525,p);
