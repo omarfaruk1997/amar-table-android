@@ -185,9 +185,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("28.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("29.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৮.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৯.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -574,6 +574,13 @@ public class MainActivity extends Activity {
                 card.addView(adjust, adjustParams);
                 final int customerIndex = ci, productIndex = pi;
                 adjust.setOnClickListener(v -> stockDialog(customerIndex, productIndex));
+                TextView historyButton = action("◷   স্টক পরিবর্তনের ইতিহাস",
+                        darkMode ? Color.rgb(48, 53, 68) : Color.rgb(245, 246, 250),
+                        darkMode ? Color.rgb(205, 215, 230) : MUTED, 12);
+                LinearLayout.LayoutParams historyParams = new LinearLayout.LayoutParams(-1, dp(38));
+                historyParams.topMargin = dp(6);
+                card.addView(historyButton, historyParams);
+                historyButton.setOnClickListener(v -> showStockHistory(product));
                 LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
                 cardParams.bottomMargin = dp(9);
                 listArea.addView(card, cardParams);
@@ -588,19 +595,29 @@ public class MainActivity extends Activity {
         if (products == null) return;
         JSONObject product = products.optJSONObject(productIndex);
         if (product == null) return;
+        int oldStock = (int) parseMoney(product.optString("stock", "0"));
         EditText quantity = field("নতুন মোট মজুতের পরিমাণ", android.text.InputType.TYPE_CLASS_NUMBER, false);
-        quantity.setText(product.optString("stock", "0"));
+        quantity.setText(String.valueOf(oldStock));
+        EditText reason = field("কারণ (যেমন: নতুন মাল কেনা / সংশোধন)", android.text.InputType.TYPE_CLASS_TEXT, false);
+        LinearLayout form = column();
+        form.addView(quantity);
+        addGap(form, 8);
+        form.addView(reason);
         new AlertDialog.Builder(this).setTitle(product.optString("name") + " — স্টক")
-            .setMessage("এখানে বর্তমান মোট মজুতের সংখ্যা লিখুন।")
-            .setView(quantity)
+            .setMessage("বর্তমান মোট মজুতের নতুন সংখ্যা লিখুন। পরিবর্তনের ইতিহাসও সংরক্ষণ হবে।")
+            .setView(form)
             .setPositiveButton("সংরক্ষণ", (d, w) -> {
                 String value = quantity.getText().toString().trim();
-                if (value.isEmpty()) {
-                    Toast.makeText(this, "স্টকের পরিমাণ লিখুন।", Toast.LENGTH_SHORT).show();
+                if (value.isEmpty() || parseMoney(value) < 0) {
+                    Toast.makeText(this, "সঠিক স্টকের পরিমাণ লিখুন।", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 try {
-                    product.put("stock", value);
+                    int newStock = (int) parseMoney(value);
+                    int delta = newStock - oldStock;
+                    product.put("stock", String.valueOf(newStock));
+                    if (delta != 0) recordStockMovement(product, delta,
+                            reason.getText().toString().trim().isEmpty() ? "স্টক সংশোধন" : reason.getText().toString().trim());
                     saveData();
                     showStockManagement();
                     Toast.makeText(this, "স্টকের পরিমাণ আপডেট হয়েছে।", Toast.LENGTH_SHORT).show();
@@ -610,7 +627,44 @@ public class MainActivity extends Activity {
             }).setNegativeButton("বাতিল", null).show();
     }
 
-    private LinearLayout emptyState(String symbol, String heading, String message) {
+    private void recordStockMovement(JSONObject product, int delta, String reason) {
+        try {
+            JSONArray history = product.optJSONArray("stockHistory");
+            if (history == null) history = new JSONArray();
+            JSONObject movement = new JSONObject();
+            movement.put("delta", delta);
+            movement.put("reason", reason);
+            movement.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+                    .format(new java.util.Date()));
+            movement.put("stockAfter", product.optString("stock", "0"));
+            history.put(movement);
+            product.put("stockHistory", history);
+        } catch (Exception ignored) {}
+    }
+
+    private void showStockHistory(JSONObject product) {
+        JSONArray history = product.optJSONArray("stockHistory");
+        if (history == null || history.length() == 0) {
+            new AlertDialog.Builder(this).setTitle("স্টক ইতিহাস")
+                    .setMessage("এই পণ্যের জন্য এখনো কোনো স্টক পরিবর্তনের ইতিহাস নেই।")
+                    .setPositiveButton("ঠিক আছে", null).show();
+            return;
+        }
+        StringBuilder details = new StringBuilder();
+        for (int i = history.length() - 1; i >= 0; i--) {
+            JSONObject item = history.optJSONObject(i);
+            if (item == null) continue;
+            int delta = item.optInt("delta");
+            details.append(item.optString("date")).append("\n")
+                    .append(delta > 0 ? "+" : "").append(delta).append(" টি — ")
+                    .append(item.optString("reason")).append("\n")
+                    .append("পরিবর্তনের পর মজুত: ").append(item.optString("stockAfter")).append(" টি\n\n");
+        }
+        new AlertDialog.Builder(this).setTitle(product.optString("name") + " — স্টক ইতিহাস")
+                .setMessage(details.toString()).setPositiveButton("বন্ধ", null).show();
+    }
+
+        private LinearLayout emptyState(String symbol, String heading, String message) {
         LinearLayout panel = column();
         panel.setGravity(Gravity.CENTER);
         panel.setPadding(dp(20), dp(25), dp(20), dp(25));
@@ -731,9 +785,35 @@ public class MainActivity extends Activity {
                 | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
         EditText note = field(sale ? "বিবরণ / পণ্যের নাম (ঐচ্ছিক)" : "জমার বিবরণ (ঐচ্ছিক)",
                 android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
+        Spinner productPicker = null;
+        EditText quantity = null;
+        JSONArray products = customer.optJSONArray("products");
+        if (sale && products != null && products.length() > 0) {
+            ArrayList<String> productNames = new ArrayList<>();
+            productNames.add("পণ্য নির্বাচন (ঐচ্ছিক — স্টক কমবে)");
+            for (int i = 0; i < products.length(); i++) {
+                JSONObject p = products.optJSONObject(i);
+                productNames.add(p == null ? "অজানা পণ্য" : p.optString("name"));
+            }
+            productPicker = new Spinner(this);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_item, productNames);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            productPicker.setAdapter(adapter);
+            quantity = field("বিক্রির পরিমাণ (ডিফল্ট ১)", android.text.InputType.TYPE_CLASS_NUMBER, false);
+            quantity.setText("1");
+            form.addView(label("স্টক থেকে বিক্রিত পণ্য", 13, true, INK));
+            addGap(form, 5);
+            form.addView(productPicker);
+            addGap(form, 8);
+            form.addView(quantity);
+            addGap(form, 10);
+        }
         form.addView(amount);
         addGap(form, 10);
         form.addView(note);
+        final Spinner selectedProduct = productPicker;
+        final EditText soldQuantity = quantity;
         new AlertDialog.Builder(this)
             .setTitle(sale ? "নতুন বিক্রি / বাকি যোগ" : "টাকা জমা যোগ")
             .setView(form)
@@ -744,10 +824,36 @@ public class MainActivity extends Activity {
                     return;
                 }
                 try {
+                    JSONObject linkedProduct = null;
+                    int sold = 0;
+                    if (sale && selectedProduct != null && selectedProduct.getSelectedItemPosition() > 0) {
+                        int productIndex = selectedProduct.getSelectedItemPosition() - 1;
+                        linkedProduct = products.optJSONObject(productIndex);
+                        sold = soldQuantity == null ? 1 : Integer.parseInt(soldQuantity.getText().toString().trim());
+                        if (linkedProduct == null || sold <= 0) {
+                            Toast.makeText(this, "সঠিক পণ্য ও পরিমাণ নির্বাচন করুন।", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        int available = (int) parseMoney(linkedProduct.optString("stock", "0"));
+                        if (sold > available) {
+                            Toast.makeText(this, "পর্যাপ্ত স্টক নেই। বর্তমান মজুত: " + available + " টি", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
                     JSONObject entry = new JSONObject();
                     entry.put("type", type);
                     entry.put("amount", raw);
-                    entry.put("note", note.getText().toString().trim());
+                    String details = note.getText().toString().trim();
+                    if (linkedProduct != null) {
+                        String productName = linkedProduct.optString("name");
+                        entry.put("productName", productName);
+                        entry.put("quantity", sold);
+                        if (details.isEmpty()) details = productName + " × " + sold;
+                        int remaining = (int) parseMoney(linkedProduct.optString("stock", "0")) - sold;
+                        linkedProduct.put("stock", String.valueOf(remaining));
+                        recordStockMovement(linkedProduct, -sold, "বিক্রি: " + productName);
+                    }
+                    entry.put("note", details);
                     entry.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
                             .format(new java.util.Date()));
                     transactions(customer).put(entry);
@@ -1007,6 +1113,7 @@ public class MainActivity extends Activity {
         metrics.addView(expenseDivider, expenseDividerParams);
         metrics.addView(statTile("মোট খরচ", "৳ " + formatMoney(periodExpenseTotal(period)), "−", Color.rgb(164, 72, 49)));
         metrics.addView(statTile("জমা থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("payment", period) - periodExpenseTotal(period)), "=", TEAL));
+        metrics.addView(statTile("বিক্রি থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("sale", period) - periodExpenseTotal(period)), "∑", Color.rgb(34, 132, 93)));
         LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
         metricParams.topMargin = dp(12);
         metricParams.bottomMargin = dp(12);
