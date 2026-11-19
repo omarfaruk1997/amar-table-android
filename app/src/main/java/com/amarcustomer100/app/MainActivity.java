@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -33,6 +35,8 @@ public class MainActivity extends Activity {
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
     private static final int REQUEST_REPORT_EXPORT = 7103;
+    private static final int REQUEST_INVOICE_PDF = 7104;
+    private JSONObject pendingInvoiceCustomer;
     private String pendingReportPeriod = "month";
 
     private static final int BG = Color.rgb(242, 246, 250);
@@ -185,9 +189,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("29.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("30.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৯.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৩০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -1388,7 +1392,7 @@ public class MainActivity extends Activity {
         root.addView(shareReport, shareParams);
         shareReport.setOnClickListener(v -> shareCustomerReport(c));
 
-        TextView invoice = primaryAction("▤   ডিজিটাল ইনভয়েস / রসিদ শেয়ার");
+        TextView invoice = primaryAction("▤   PDF ইনভয়েস তৈরি করুন");
         LinearLayout.LayoutParams invoiceParams = new LinearLayout.LayoutParams(-1, dp(46));
         invoiceParams.bottomMargin = dp(10);
         root.addView(invoice, invoiceParams);
@@ -1432,31 +1436,100 @@ public class MainActivity extends Activity {
     }
 
     private void shareDigitalInvoice(JSONObject customer) {
+        pendingInvoiceCustomer = customer;
+        String safeName = customer.optString("name", "Customer").replaceAll("[^\\p{L}\\p{N}._-]", "_");
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_TITLE, "AmarCustomer-Invoice-" + safeName + "-" +
+                new java.text.SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(new java.util.Date()) + ".pdf");
+        startActivityForResult(intent, REQUEST_INVOICE_PDF);
+    }
+
+    private void writeInvoicePdf(Uri uri, JSONObject customer) {
+        PdfDocument document = new PdfDocument();
+        OutputStream output = null;
         try {
-            StringBuilder receipt = new StringBuilder();
-            receipt.append("আমার কাস্টমার — বিক্রয় রসিদ\\n");
-            receipt.append("তারিখ: ").append(new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(new java.util.Date())).append("\\n");
-            receipt.append("কাস্টমার: ").append(customer.optString("name")).append("\\n");
-            receipt.append("মোবাইল: ").append(customer.optString("phone", "—")).append("\\n\\nপণ্যের বিবরণ\\n");
             JSONArray items = customer.optJSONArray("products");
+            int itemCount = items == null ? 0 : items.length();
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            paint.setTextSize(12);
+            paint.setColor(Color.rgb(49, 62, 78));
             double total = 0;
-            if (items != null) for (int i = 0; i < items.length(); i++) {
+            for (int i = 0; i < itemCount; i++) {
                 JSONObject item = items.optJSONObject(i);
-                if (item == null) continue;
-                double price = parseMoney(item.optString("price"));
-                total += price;
-                receipt.append(i + 1).append(". ").append(item.optString("name"))
-                    .append(" — ৳ ").append(formatMoney(price)).append("\\n");
+                if (item != null) total += parseMoney(item.optString("price"));
             }
-            receipt.append("\\nসর্বমোট: ৳ ").append(formatMoney(total));
-            receipt.append("\\n\\nধন্যবাদ।");
-            Intent send = new Intent(Intent.ACTION_SEND);
-            send.setType("text/plain");
-            send.putExtra(Intent.EXTRA_SUBJECT, "বিক্রয় রসিদ — " + customer.optString("name"));
-            send.putExtra(Intent.EXTRA_TEXT, receipt.toString());
-            startActivity(Intent.createChooser(send, "ডিজিটাল রসিদ শেয়ার করুন"));
+            int pageNumber = 1;
+            int y = 0;
+            PdfDocument.Page page = null;
+            android.graphics.Canvas canvas = null;
+            for (int i = 0; i < Math.max(1, itemCount); i++) {
+                if (page == null || y > 755) {
+                    if (page != null) document.finishPage(page);
+                    PdfDocument.PageInfo info = new PdfDocument.PageInfo.Builder(595, 842, pageNumber++).create();
+                    page = document.startPage(info);
+                    canvas = page.getCanvas();
+                    canvas.drawColor(Color.WHITE);
+                    Paint band = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    band.setColor(Color.rgb(8, 48, 75));
+                    canvas.drawRect(0, 0, 595, 145, band);
+                    Paint white = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    white.setColor(Color.WHITE);
+                    white.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+                    white.setTextSize(25);
+                    canvas.drawText("আমার কাস্টমার", 42, 58, white);
+                    white.setTextSize(14);
+                    white.setTypeface(Typeface.DEFAULT);
+                    canvas.drawText("বিক্রয় ইনভয়েস / রসিদ", 42, 88, white);
+                    paint.setColor(Color.rgb(230, 207, 160));
+                    canvas.drawText("PREMIUM BUSINESS RECORD", 42, 119, paint);
+                    paint.setColor(Color.rgb(49, 62, 78));
+                    canvas.drawText("কাস্টমার: " + customer.optString("name"), 42, 180, paint);
+                    canvas.drawText("মোবাইল: " + customer.optString("phone", "—"), 42, 203, paint);
+                    canvas.drawText("ঠিকানা: " + customer.optString("address", "—"), 42, 226, paint);
+                    canvas.drawText("তারিখ: " + new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(new java.util.Date()), 42, 249, paint);
+                    Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    line.setColor(Color.rgb(218, 226, 234));
+                    canvas.drawRect(42, 270, 553, 272, line);
+                    paint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+                    canvas.drawText("নং", 45, 297, paint);
+                    canvas.drawText("পণ্যের নাম", 95, 297, paint);
+                    canvas.drawText("একক দাম", 430, 297, paint);
+                    canvas.drawRect(42, 308, 553, 309, line);
+                    paint.setTypeface(Typeface.DEFAULT);
+                    y = 338;
+                }
+                if (itemCount > 0) {
+                    JSONObject item = items.optJSONObject(i);
+                    if (item == null) continue;
+                    canvas.drawText(String.valueOf(i + 1), 48, y, paint);
+                    canvas.drawText(item.optString("name"), 95, y, paint);
+                    canvas.drawText("৳ " + formatMoney(parseMoney(item.optString("price"))), 430, y, paint);
+                    y += 28;
+                }
+            }
+            Paint totalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            totalPaint.setColor(Color.rgb(8, 91, 91));
+            totalPaint.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+            totalPaint.setTextSize(17);
+            canvas.drawRect(42, y + 5, 553, y + 7, totalPaint);
+            canvas.drawText("সর্বমোট: ৳ " + formatMoney(total), 355, y + 36, totalPaint);
+            Paint footer = new Paint(Paint.ANTI_ALIAS_FLAG);
+            footer.setColor(Color.rgb(112, 125, 143));
+            footer.setTextSize(11);
+            canvas.drawText("ধন্যবাদ। আপনার ব্যবসার বিশ্বস্ত সঙ্গী — আমার কাস্টমার", 42, 805, footer);
+            document.finishPage(page);
+            output = getContentResolver().openOutputStream(uri);
+            if (output == null) throw new Exception("PDF destination unavailable");
+            document.writeTo(output);
+            output.flush();
+            Toast.makeText(this, "PDF ইনভয়েস সফলভাবে তৈরি হয়েছে।", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            Toast.makeText(this, "রসিদ তৈরি করা যায়নি।", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "PDF ইনভয়েস তৈরি করা যায়নি।", Toast.LENGTH_LONG).show();
+        } finally {
+            try { if (output != null) output.close(); } catch (Exception ignored) {}
+            document.close();
         }
     }
 
@@ -1618,6 +1691,9 @@ public class MainActivity extends Activity {
         Uri uri = data.getData();
         if (requestCode == REQUEST_REPORT_EXPORT) {
             writeReportCsv(uri, pendingReportPeriod);
+        } else if (requestCode == REQUEST_INVOICE_PDF) {
+            if (pendingInvoiceCustomer != null) writeInvoicePdf(uri, pendingInvoiceCustomer);
+            pendingInvoiceCustomer = null;
         } else if (requestCode == REQUEST_BACKUP_EXPORT) {
             try {
                 JSONObject backup = new JSONObject();
