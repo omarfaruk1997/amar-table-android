@@ -225,44 +225,33 @@ public class MainActivity extends Activity {
     private void showCustomers() {
         selectedCustomer = -1;
         base("আমার কাস্টমার", "আপনার ব্যবসার স্মার্ট কাস্টমার খাতা");
-        TextView add = primaryAction("+   নতুন কাস্টমার যোগ করুন");
-        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(52));
-        ap.topMargin = dp(8);
-        ap.bottomMargin = dp(14);
-        root.addView(add, 3, ap);
+
+        // Keep the three primary actions directly below the brand header.
+        LinearLayout homeActions = column();
+        homeActions.setPadding(0, dp(12), 0, dp(4));
+        root.addView(homeActions, 1);
+
+        TextView add = primaryAction("＋   নতুন কাস্টমার যোগ করুন");
+        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(54));
+        ap.bottomMargin = dp(10);
+        homeActions.addView(add, ap);
         add.setOnClickListener(v -> customerDialog(-1));
 
-        LinearLayout dashboard = row();
-        dashboard.setPadding(dp(10), dp(14), dp(10), dp(14));
-        dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
-        dashboard.setElevation(dp(6));
-        dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        View statDivider = new View(this);
-        statDivider.setBackgroundColor(BORDER);
-        dashboard.addView(statDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
-        dashboard.addView(statTile("মোট পণ্য", String.valueOf(countAllProducts()), "▦", TEAL),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        View priceDivider = new View(this);
-        priceDivider.setBackgroundColor(BORDER);
-        dashboard.addView(priceDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
-        dashboard.addView(statTile("মোট দাম", "৳ " + formatMoney(sumAllProductPrices()), "৳", Color.rgb(157, 112, 43)),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
-        dashParams.bottomMargin = dp(12);
-        root.addView(dashboard, 2, dashParams);
-
-        TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(239, 233, 219), darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 14);
-        LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(46));
-        backupParams.bottomMargin = dp(12);
-        root.addView(backup, 4, backupParams);
-        backup.setOnClickListener(v -> showBackupOptions());
-
-        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট", darkMode ? Color.rgb(34, 58, 68) : Color.rgb(226, 243, 239), darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 14);
-        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(46));
-        reportParams.bottomMargin = dp(12);
-        root.addView(reports, 5, reportParams);
+        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট",
+                darkMode ? Color.rgb(27, 65, 66) : Color.rgb(226, 243, 239),
+                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 15);
+        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(48));
+        reportParams.bottomMargin = dp(9);
+        homeActions.addView(reports, reportParams);
         reports.setOnClickListener(v -> showBusinessReport("month"));
+
+        TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
+                darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
+                darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
+        LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(48));
+        backupParams.bottomMargin = dp(8);
+        homeActions.addView(backup, backupParams);
+        backup.setOnClickListener(v -> showBackupOptions());
 
         renderCustomers("");
         search.addTextChangedListener(watcher(s -> renderCustomers(s)));
@@ -280,6 +269,26 @@ public class MainActivity extends Activity {
 
     private void renderCustomers(String filter) {
         listArea.removeAllViews();
+        LinearLayout dashboard = row();
+        dashboard.setPadding(dp(10), dp(14), dp(10), dp(14));
+        dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
+        dashboard.setElevation(dp(5));
+        dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        View statDivider = new View(this);
+        statDivider.setBackgroundColor(BORDER);
+        dashboard.addView(statDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
+        dashboard.addView(statTile("মোট পণ্য", String.valueOf(countAllProducts()), "▦", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        View priceDivider = new View(this);
+        priceDivider.setBackgroundColor(BORDER);
+        dashboard.addView(priceDivider, new LinearLayout.LayoutParams(dp(1), dp(42)));
+        dashboard.addView(statTile("মোট দাম", "৳ " + formatMoney(sumAllProductPrices()), "৳", Color.rgb(157, 112, 43)),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
+        dashParams.bottomMargin = dp(14);
+        listArea.addView(dashboard, dashParams);
+
         TextView section = label("আপনার কাস্টমার তালিকা  ·  " + customers.size() + " জন", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
         sectionParams.bottomMargin = dp(5);
