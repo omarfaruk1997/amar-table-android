@@ -2200,13 +2200,22 @@ public class MainActivity extends Activity {
             try {
                 JSONObject backup = new JSONObject();
                 backup.put("app", "Amar Customer");
-                backup.put("version", 2);
-                backup.put("backupFormat", "AmarCustomer50");
+                backup.put("version", 3);
+                backup.put("backupFormat", "AmarCustomer55");
                 backup.put("createdAt", System.currentTimeMillis());
                 JSONArray saved = new JSONArray();
                 for (JSONObject customer : customers) saved.put(customer);
                 backup.put("customers", saved);
                 backup.put("expenses", expenses);
+                JSONObject shopProfile=new JSONObject();
+                shopProfile.put("name",getPreferences(MODE_PRIVATE).getString("shop_name","আমার কাস্টমার"));
+                shopProfile.put("phone",getPreferences(MODE_PRIVATE).getString("shop_phone",""));
+                shopProfile.put("address",getPreferences(MODE_PRIVATE).getString("shop_address",""));
+                backup.put("shopProfile",shopProfile);
+                JSONObject documentSequences=new JSONObject();
+                documentSequences.put("invoice",getPreferences(MODE_PRIVATE).getInt("document_sequence_INV",0));
+                documentSequences.put("receipt",getPreferences(MODE_PRIVATE).getInt("document_sequence_RCT",0));
+                backup.put("documentSequences",documentSequences);
                 try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                     if (out == null) throw new Exception("File unavailable");
                     out.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
@@ -2233,6 +2242,8 @@ public class MainActivity extends Activity {
             JSONArray incoming = backup.optJSONArray("customers");
             if (incoming == null) throw new Exception("Invalid backup");
             JSONArray incomingExpenses = backup.optJSONArray("expenses");
+            JSONObject incomingShopProfile=backup.optJSONObject("shopProfile");
+            JSONObject incomingSequences=backup.optJSONObject("documentSequences");
             JSONArray checkedExpenses = new JSONArray();
             if (incomingExpenses != null) {
                 for (int i = 0; i < incomingExpenses.length(); i++) {
@@ -2260,6 +2271,17 @@ public class MainActivity extends Activity {
                         expenses = checkedExpenses;
                         saveExpenses();
                     }
+                    android.content.SharedPreferences.Editor settings=getPreferences(MODE_PRIVATE).edit();
+                    if(incomingShopProfile!=null) {
+                        settings.putString("shop_name",incomingShopProfile.optString("name","আমার কাস্টমার"));
+                        settings.putString("shop_phone",incomingShopProfile.optString("phone",""));
+                        settings.putString("shop_address",incomingShopProfile.optString("address",""));
+                    }
+                    if(incomingSequences!=null) {
+                        settings.putInt("document_sequence_INV",Math.max(0,incomingSequences.optInt("invoice",0)));
+                        settings.putInt("document_sequence_RCT",Math.max(0,incomingSequences.optInt("receipt",0)));
+                    }
+                    settings.apply();
                     saveData();
                     showCustomers();
                     Toast.makeText(this, "ব্যাকআপের তথ্য সফলভাবে ফিরিয়ে আনা হয়েছে।", Toast.LENGTH_LONG).show();
