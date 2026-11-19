@@ -527,6 +527,7 @@ public class MainActivity extends Activity {
         double sales = sumAllTransactions("sale");
         double expenseTotal = 0;
         for (int i=0;i<expenses.length();i++) { JSONObject e=expenses.optJSONObject(i); if(e!=null) expenseTotal+=parseMoney(e.optString("amount")); }
+        final double expenseTotalFinal = expenseTotal;
         LinearLayout panel=column(); panel.setPadding(dp(16),dp(15),dp(16),dp(14));
         panel.setBackground(shape(darkMode?Color.rgb(27,39,56):Color.WHITE,BORDER,22)); panel.setElevation(dp(5));
         LinearLayout head=row(); head.addView(label("ব্যবসার এক নজরের সারাংশ",15,true,INK),new LinearLayout.LayoutParams(0,-2,1)); head.addView(label("LIVE",10,true,ACCENTS[accentTheme])); panel.addView(head);
@@ -535,8 +536,8 @@ public class MainActivity extends Activity {
             private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
             @Override protected void onDraw(Canvas canvas) {
                 super.onDraw(canvas); float w=getWidth(),h=getHeight(),base=h-dp(8);
-                double max=Math.max(1,Math.max(sales,expenseTotal));
-                float sh=(float)(sales/max)*(h-dp(24)), eh=(float)(expenseTotal/max)*(h-dp(24));
+                double max=Math.max(1,Math.max(sales,expenseTotalFinal));
+                float sh=(float)(sales/max)*(h-dp(24)), eh=(float)(expenseTotalFinal/max)*(h-dp(24));
                 p.setColor(ACCENTS[accentTheme]); canvas.drawRoundRect(dp(30),base-sh,dp(88),base,dp(9),dp(9),p);
                 p.setColor(Color.rgb(204,139,65)); canvas.drawRoundRect(w-dp(88),base-eh,w-dp(30),base,dp(9),dp(9),p);
                 p.setColor(themedText(MUTED)); p.setTextSize(dp(10)); canvas.drawText("বিক্রি",dp(35),h-dp(1),p); canvas.drawText("খরচ",w-dp(82),h-dp(1),p);
