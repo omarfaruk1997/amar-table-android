@@ -436,6 +436,132 @@ public class MainActivity extends Activity {
         return total;
     }
 
+
+    private JSONArray transactions(JSONObject customer) {
+        JSONArray list = customer.optJSONArray("transactions");
+        if (list == null) {
+            list = new JSONArray();
+            try { customer.put("transactions", list); } catch (Exception ignored) {}
+        }
+        return list;
+    }
+
+    private double parseMoney(String raw) {
+        StringBuilder normalized = new StringBuilder();
+        if (raw == null) return 0;
+        for (int i = 0; i < raw.length(); i++) {
+            char ch = raw.charAt(i);
+            if (ch >= 0x09E6 && ch <= 0x09EF) normalized.append((char)('0' + ch - 0x09E6));
+            else if (ch >= 0x0660 && ch <= 0x0669) normalized.append((char)('0' + ch - 0x0660));
+            else if (ch != ',' && ch != '৳' && ch != ' ') normalized.append(ch);
+        }
+        try { return Double.parseDouble(normalized.toString()); }
+        catch (Exception ignored) { return 0; }
+    }
+
+    private double sumTransactions(JSONObject customer, String type) {
+        double total = 0;
+        JSONArray list = transactions(customer);
+        for (int i = 0; i < list.length(); i++) {
+            JSONObject item = list.optJSONObject(i);
+            if (item != null && type.equals(item.optString("type")))
+                total += parseMoney(item.optString("amount"));
+        }
+        return total;
+    }
+
+    private double customerDue(JSONObject customer) {
+        return sumTransactions(customer, "sale") - sumTransactions(customer, "payment");
+    }
+
+    private double sumAllTransactions(String type) {
+        double total = 0;
+        for (JSONObject customer : customers) total += sumTransactions(customer, type);
+        return total;
+    }
+
+    private double sumAllDue() {
+        double total = 0;
+        for (JSONObject customer : customers) total += customerDue(customer);
+        return total;
+    }
+
+    private void transactionDialog(String type) {
+        if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
+        JSONObject customer = customers.get(selectedCustomer);
+        boolean sale = "sale".equals(type);
+        LinearLayout form = column();
+        form.setPadding(dp(4), dp(5), dp(4), 0);
+        EditText amount = field("টাকার পরিমাণ", android.text.InputType.TYPE_CLASS_NUMBER
+                | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
+        EditText note = field(sale ? "বিবরণ / পণ্যের নাম (ঐচ্ছিক)" : "জমার বিবরণ (ঐচ্ছিক)",
+                android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
+        form.addView(amount);
+        addGap(form, 10);
+        form.addView(note);
+        new AlertDialog.Builder(this)
+            .setTitle(sale ? "নতুন বিক্রি / বাকি যোগ" : "টাকা জমা যোগ")
+            .setView(form)
+            .setPositiveButton("সংরক্ষণ", (dialog, which) -> {
+                String raw = amount.getText().toString().trim();
+                if (parseMoney(raw) <= 0) {
+                    Toast.makeText(this, "সঠিক টাকার পরিমাণ লিখুন।", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    JSONObject entry = new JSONObject();
+                    entry.put("type", type);
+                    entry.put("amount", raw);
+                    entry.put("note", note.getText().toString().trim());
+                    entry.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+                            .format(new java.util.Date()));
+                    transactions(customer).put(entry);
+                    saveData();
+                    showProducts(selectedCustomer);
+                    Toast.makeText(this, sale ? "বিক্রির হিসাব যোগ হয়েছে।" : "টাকা জমার হিসাব যোগ হয়েছে।",
+                            Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "হিসাব সংরক্ষণ করা যায়নি।", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("বাতিল", null)
+            .show();
+    }
+
+    private void showLedger() {
+        if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
+        JSONObject customer = customers.get(selectedCustomer);
+        JSONArray list = transactions(customer);
+        StringBuilder report = new StringBuilder();
+        report.append("মোট বিক্রি: ৳ ").append(formatMoney(sumTransactions(customer, "sale")));
+        report.append("\\nমোট জমা: ৳ ").append(formatMoney(sumTransactions(customer, "payment")));
+        report.append("\\nবর্তমান বকেয়া: ৳ ").append(formatMoney(customerDue(customer)));
+        report.append("\\n\\nলেনদেনের ইতিহাস\\n");
+        if (list.length() == 0) report.append("এখনও কোনো লেনদেন যোগ করা হয়নি।");
+        for (int i = list.length() - 1; i >= 0; i--) {
+            JSONObject item = list.optJSONObject(i);
+            if (item == null) continue;
+            report.append("\\n").append("sale".equals(item.optString("type")) ? "বিক্রি" : "জমা");
+            report.append("  •  ৳ ").append(formatMoney(parseMoney(item.optString("amount"))));
+            String date = item.optString("date", "");
+            if (!date.isEmpty()) report.append("\\n").append(date);
+            String note = item.optString("note", "").trim();
+            if (!note.isEmpty()) report.append("  |  ").append(note);
+            report.append("\\n");
+        }
+        TextView content = label(report.toString(), 14, false, INK);
+        content.setGravity(Gravity.TOP | Gravity.START);
+        content.setPadding(dp(12), dp(12), dp(12), dp(12));
+        ScrollView scroller = new ScrollView(this);
+        scroller.addView(content);
+        new AlertDialog.Builder(this)
+            .setTitle(customer.optString("name") + " — হিসাব")
+            .setView(scroller)
+            .setPositiveButton("বন্ধ", null)
+            .setNeutralButton("রিপোর্ট শেয়ার", (d, w) -> shareCustomerReport(customer))
+            .show();
+    }
+
     private double sumProductPrices(JSONObject customer) {
         JSONArray products = customer.optJSONArray("products");
         if (products == null) return 0;
