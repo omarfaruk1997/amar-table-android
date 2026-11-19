@@ -32,12 +32,12 @@ public class MainActivity extends Activity {
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
 
-    private static final int BG = Color.rgb(246, 247, 250);
-    private static final int INK = Color.rgb(23, 33, 52);
+    private static final int BG = Color.rgb(242, 246, 250);
+    private static final int INK = Color.rgb(20, 32, 51);
     private static final int MUTED = Color.rgb(112, 125, 143);
-    private static final int BLUE = Color.rgb(31, 75, 145);
+    private static final int BLUE = Color.rgb(27,  70, 132);
     private static final int PALE = Color.rgb(239, 243, 249);
-    private static final int TEAL = Color.rgb(13, 125, 112);
+    private static final int TEAL = Color.rgb(8, 137, 126);
     private static final int BORDER = Color.rgb(229, 234, 242);
 
     @Override public void onCreate(Bundle state) {
@@ -85,6 +85,7 @@ public class MainActivity extends Activity {
         if (bold) t.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         t.setGravity(Gravity.CENTER_VERTICAL);
         t.setIncludeFontPadding(false);
+        t.setLetterSpacing(0.005f);
         return t;
     }
 
@@ -148,43 +149,45 @@ public class MainActivity extends Activity {
     private void base(String title, String subtitle) {
         root = column();
         root.setBackgroundColor(darkMode ? Color.rgb(15, 23, 36) : BG);
-        root.setPadding(dp(17), dp(18), dp(17), dp(14));
+        root.setPadding(dp(16), dp(16), dp(16), dp(14));
         setContentView(root);
         getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(15, 29, 52));
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(19), dp(23), dp(16), dp(23));
+        brand.setPadding(dp(16), dp(18), dp(13), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(4, 18, 43), Color.rgb(8, 105, 119), Color.rgb(183, 132, 57)});
+                new int[]{Color.rgb(5, 19, 43), Color.rgb(7, 91, 105), Color.rgb(157, 111, 48)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
-        brand.setElevation(dp(16));
+        brand.setElevation(dp(12));
         ImageView mark = new ImageView(this);
         mark.setImageResource(R.drawable.ic_brand_mark);
         mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        mark.setBackground(shape(Color.rgb(255, 246, 220), Color.rgb(255, 226, 163), 17));
+        mark.setBackground(shape(Color.rgb(7, 26, 53), Color.rgb(224, 188, 115), 17));
         mark.setPadding(dp(3), dp(3), dp(3), dp(3));
         mark.setElevation(dp(5));
         mark.setContentDescription("আমার কাস্টমার নতুন ব্র্যান্ড লোগো");
-        brand.addView(mark, new LinearLayout.LayoutParams(dp(54), dp(54)));
+        brand.addView(mark, new LinearLayout.LayoutParams(dp(52), dp(52)));
 
         LinearLayout titles = column();
         titles.setPadding(dp(10), 0, 0, 0);
-        TextView heading = label(title, 18, true, Color.WHITE);
+        TextView heading = label(title, 19, true, Color.WHITE);
         heading.setSingleLine(true);
         heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(heading);
-        TextView sub = label(subtitle, 12, false, Color.rgb(230, 218, 194));
+        TextView sub = label(subtitle, 11, false, Color.rgb(230, 220, 201));
+        sub.setSingleLine(true);
+        sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("18.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("20.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ১৮.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        version.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 20));
+        version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
         TextView theme = label(darkMode ? "☀" : "☾", 20, true, Color.rgb(255, 226, 163));
         theme.setGravity(Gravity.CENTER);
@@ -206,7 +209,7 @@ public class MainActivity extends Activity {
         search.setBackground(shape(Color.WHITE, Color.rgb(207, 220, 234), 18));
         search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(52));
-        sp.topMargin = dp(18);
+        sp.topMargin = dp(15);
         sp.bottomMargin = dp(12);
         root.addView(search, sp);
 
@@ -230,7 +233,7 @@ public class MainActivity extends Activity {
         LinearLayout dashboard = row();
         dashboard.setPadding(dp(10), dp(14), dp(10), dp(14));
         dashboard.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 20));
-        dashboard.setElevation(dp(4));
+        dashboard.setElevation(dp(6));
         dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
         View statDivider = new View(this);
@@ -286,14 +289,14 @@ public class MainActivity extends Activity {
             LinearLayout card = column();
             card.setPadding(dp(17), dp(16), dp(16), dp(15));
             card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
-            card.setElevation(dp(10));
+            card.setElevation(dp(7));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
                     new int[]{Color.rgb(8, 67, 112), Color.rgb(12, 151, 139), Color.rgb(210, 158, 75)});
             accentGradient.setCornerRadius(dp(3));
             accentLine.setBackground(accentGradient);
-            LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(-1, dp(4));
+            LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(-1, dp(3));
             accentParams.bottomMargin = dp(12);
             card.addView(accentLine, accentParams);
             card.setClipToOutline(true);
@@ -658,7 +661,7 @@ public class MainActivity extends Activity {
             LinearLayout card = row();
             card.setPadding(dp(16), dp(15), dp(12), dp(15));
             card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 21));
-            card.setElevation(dp(9));
+            card.setElevation(dp(7));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
