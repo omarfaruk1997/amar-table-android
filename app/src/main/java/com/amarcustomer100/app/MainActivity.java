@@ -189,9 +189,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("30.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("31.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৩০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৩১.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -268,9 +268,9 @@ public class MainActivity extends Activity {
         listArea.addView(dashboard, dashParams);
         addPremiumOverview();
 
-        TextView section = label("আপনার কাস্টমার তালিকা  ·  " + customers.size() + " জন", 16, true, INK);
+        TextView section = label("আপনার কাস্টমার তালিকা", 17, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
-        sectionParams.bottomMargin = dp(5);
+        sectionParams.bottomMargin = dp(7);
         listArea.addView(section, sectionParams);
         String q = filter.toLowerCase(Locale.ROOT).trim();
 
@@ -283,9 +283,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(17), dp(16), dp(16), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
-            card.setElevation(dp(7));
+            card.setPadding(dp(18), dp(17), dp(17), dp(16));
+            card.setBackground(shape(Color.WHITE, Color.rgb(205, 219, 237), 24));
+            card.setElevation(dp(8));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -441,21 +441,21 @@ public class MainActivity extends Activity {
             due += customerDue(customer);
         }
         LinearLayout hero = column();
-        hero.setPadding(dp(17), dp(15), dp(17), dp(15));
+        hero.setPadding(dp(20), dp(19), dp(20), dp(18));
         GradientDrawable gradient = new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
                 darkMode
-                    ? new int[]{Color.rgb(15, 35, 57), Color.rgb(12, 91, 91), Color.rgb(77, 59, 39)}
-                    : new int[]{Color.rgb(9, 35, 66), Color.rgb(10, 105, 112), Color.rgb(132, 91, 43)});
-        gradient.setCornerRadius(dp(21));
+                    ? new int[]{Color.rgb(19, 31, 62), Color.rgb(31, 72, 139), Color.rgb(9, 117, 123)}
+                    : new int[]{Color.rgb(8, 24, 58), Color.rgb(28, 75, 151), Color.rgb(9, 139, 133)});
+        gradient.setCornerRadius(dp(26));
         gradient.setStroke(dp(1), darkMode ? Color.rgb(67, 103, 116) : Color.rgb(183, 157, 111));
         hero.setBackground(gradient);
-        hero.setElevation(dp(7));
+        hero.setElevation(dp(10));
 
         LinearLayout heading = row();
-        TextView title = label("আজকের ব্যবসার সংক্ষিপ্ত চিত্র", 14, true, Color.WHITE);
+        TextView title = label("আপনার ব্যবসার ড্যাশবোর্ড", 16, true, Color.WHITE);
         heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView badge = label("LIVE", 10, true, Color.rgb(255, 225, 164));
+        TextView badge = label("PREMIUM", 9, true, Color.rgb(255, 225, 164));
         badge.setGravity(Gravity.CENTER);
         badge.setPadding(dp(9), dp(5), dp(9), dp(5));
         GradientDrawable badgeBg = new GradientDrawable();
@@ -480,7 +480,7 @@ public class MainActivity extends Activity {
         metrics.addView(dividerTwo, dividerParams);
         addHeroMetric(metrics, "কম স্টক", String.valueOf(countLowStock()) + " টি");
         hero.addView(metrics);
-        TextView hint = label("আপনার কাস্টমার, বিক্রি ও মজুত—সব এক জায়গায়", 11, false,
+        TextView hint = label("কাস্টমার • বিক্রি • বকেয়া • মজুত — সব এক জায়গায়", 11, false,
                 Color.rgb(226, 232, 228));
         LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(-1, -2);
         hintParams.topMargin = dp(9);
