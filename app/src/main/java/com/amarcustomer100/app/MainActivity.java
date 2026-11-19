@@ -230,6 +230,69 @@ public class MainActivity extends Activity {
         listArea = column();
         scroll.addView(listArea);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+
+        // Keep Backup & Restore as the final home action; show bottom navigation on inner screens.
+        if (!"আমার কাস্টমার".equals(title)) addPremiumBottomNavigation(title);
+    }
+
+    private void addPremiumBottomNavigation(String currentTitle) {
+        LinearLayout nav = row();
+        nav.setGravity(Gravity.CENTER);
+        nav.setPadding(dp(6), dp(7), dp(6), dp(7));
+        GradientDrawable shell = new GradientDrawable();
+        shell.setColor(darkMode ? Color.rgb(8, 17, 32) : Color.rgb(12, 27, 51));
+        shell.setCornerRadius(dp(21));
+        shell.setStroke(dp(1), Color.rgb(171, 132, 65));
+        nav.setBackground(shell);
+        nav.setElevation(dp(10));
+        String[] icons = {"⌂", "▤", "◷", "✦"};
+        String[] labels = {"হোম", "অ্যানালিটিক্স", "বকেয়া", "টুলস"};
+        int selected = currentTitle.contains("অ্যানালিটিক্স") ? 1 : currentTitle.contains("রিমাইন্ডার") ? 2 : -1;
+        for (int i = 0; i < labels.length; i++) {
+            final int tab = i;
+            LinearLayout item = column();
+            item.setGravity(Gravity.CENTER);
+            item.setPadding(dp(3), dp(5), dp(3), dp(5));
+            boolean active = i == selected;
+            if (active) {
+                GradientDrawable activeBg = new GradientDrawable();
+                activeBg.setColor(Color.rgb(118, 88, 43));
+                activeBg.setCornerRadius(dp(15));
+                activeBg.setStroke(dp(1), Color.rgb(225, 190, 116));
+                item.setBackground(activeBg);
+            }
+            TextView icon = label(icons[i], 19, true, active ? Color.rgb(255, 231, 179) : Color.rgb(205, 184, 143));
+            icon.setGravity(Gravity.CENTER);
+            item.addView(icon);
+            TextView caption = label(labels[i], 10, true, active ? Color.WHITE : Color.rgb(218, 224, 234));
+            caption.setGravity(Gravity.CENTER);
+            item.addView(caption);
+            nav.addView(item, new LinearLayout.LayoutParams(0, dp(48), 1));
+            item.setClickable(true);
+            item.setFocusable(true);
+            item.setOnClickListener(v -> {
+                if (tab == 0) showCustomers();
+                else if (tab == 1) showAnalytics("month");
+                else if (tab == 2) showDueReminders();
+                else showPremiumToolsMenu();
+            });
+        }
+        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, dp(62));
+        np.topMargin = dp(9);
+        np.bottomMargin = dp(2);
+        root.addView(nav, np);
+    }
+
+    private void showPremiumToolsMenu() {
+        String[] tools = {"দৈনিক খরচের হিসাব", "পণ্যের স্টক ব্যবস্থাপনা", "বিক্রয় রিপোর্ট", "থিম ও রঙ কাস্টমাইজ", "অ্যাপ PIN নিরাপত্তা", "তথ্য ব্যাকআপ ও পুনরুদ্ধার"};
+        new AlertDialog.Builder(this).setTitle("ব্যবসার প্রয়োজনীয় টুলস").setItems(tools, (dialog, which) -> {
+            if (which == 0) showExpenses("");
+            else if (which == 1) showStockManagement();
+            else if (which == 2) showBusinessReport("month");
+            else if (which == 3) showThemePicker();
+            else if (which == 4) managePinSecurity();
+            else showBackupOptions();
+        }).setNegativeButton("বন্ধ", null).show();
     }
 
     private void showCustomers() {
