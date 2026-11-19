@@ -194,9 +194,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("52.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("53.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৫০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৫৩.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -654,9 +654,26 @@ public class MainActivity extends Activity {
         summary.setBackground(shape(Color.WHITE, BORDER, 18));
         int total = countAllProducts();
         int low = countLowStock();
+        int totalUnits = 0;
+        double stockValue = 0;
+        for (JSONObject owner : customers) {
+            JSONArray items = owner.optJSONArray("products");
+            if (items == null) continue;
+            for (int ix = 0; ix < items.length(); ix++) {
+                JSONObject item = items.optJSONObject(ix);
+                if (item == null) continue;
+                int units = (int) parseMoney(item.optString("stock", "0"));
+                totalUnits += Math.max(0, units);
+                stockValue += Math.max(0, units) * Math.max(0, parseMoney(item.optString("price", "0")));
+            }
+        }
         summary.addView(statTile("মোট পণ্য", String.valueOf(total), "▦", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
-        summary.addView(statTile("কম / শেষ স্টক", String.valueOf(low), "!", Color.rgb(190, 85, 55)),
+        summary.addView(statTile("মোট ইউনিট", String.valueOf(totalUnits), "↕", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        summary.addView(statTile("মজুতের মূল্য", "৳" + formatMoney(stockValue), "৳", Color.rgb(157, 112, 43)),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        summary.addView(statTile("কম / শেষ", String.valueOf(low), "!", Color.rgb(190, 85, 55)),
                 new LinearLayout.LayoutParams(0, -2, 1));
         LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
         summaryParams.bottomMargin = dp(12);
