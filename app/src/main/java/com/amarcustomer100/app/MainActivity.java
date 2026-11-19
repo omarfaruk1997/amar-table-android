@@ -185,9 +185,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("27.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("28.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৭.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৮.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -262,6 +262,7 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
         dashParams.bottomMargin = dp(14);
         listArea.addView(dashboard, dashParams);
+        addPremiumOverview();
 
         TextView section = label("আপনার কাস্টমার তালিকা  ·  " + customers.size() + " জন", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
@@ -380,6 +381,10 @@ public class MainActivity extends Activity {
         // Place the requested home actions at the bottom of the customer list.
         LinearLayout homeActions = column();
         homeActions.setPadding(0, dp(16), 0, dp(8));
+        TextView shortcutsTitle = label("ব্যবসার প্রয়োজনীয় টুলস", 16, true, INK);
+        LinearLayout.LayoutParams shortcutsTitleParams = new LinearLayout.LayoutParams(-1, dp(34));
+        shortcutsTitleParams.bottomMargin = dp(7);
+        homeActions.addView(shortcutsTitle, shortcutsTitleParams);
         TextView add = primaryAction("＋   নতুন কাস্টমার যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(54));
         ap.bottomMargin = dp(10);
@@ -422,6 +427,79 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams homeActionsParams = new LinearLayout.LayoutParams(-1, -2);
         homeActionsParams.topMargin = dp(8);
         listArea.addView(homeActions, homeActionsParams);
+    }
+
+    private void addPremiumOverview() {
+        double sales = 0;
+        double due = 0;
+        for (JSONObject customer : customers) {
+            sales += sumTransactions(customer, "sale");
+            due += customerDue(customer);
+        }
+        LinearLayout hero = column();
+        hero.setPadding(dp(17), dp(15), dp(17), dp(15));
+        GradientDrawable gradient = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
+                darkMode
+                    ? new int[]{Color.rgb(15, 35, 57), Color.rgb(12, 91, 91), Color.rgb(77, 59, 39)}
+                    : new int[]{Color.rgb(9, 35, 66), Color.rgb(10, 105, 112), Color.rgb(132, 91, 43)});
+        gradient.setCornerRadius(dp(21));
+        gradient.setStroke(dp(1), darkMode ? Color.rgb(67, 103, 116) : Color.rgb(183, 157, 111));
+        hero.setBackground(gradient);
+        hero.setElevation(dp(7));
+
+        LinearLayout heading = row();
+        TextView title = label("আজকের ব্যবসার সংক্ষিপ্ত চিত্র", 14, true, Color.WHITE);
+        heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView badge = label("LIVE", 10, true, Color.rgb(255, 225, 164));
+        badge.setGravity(Gravity.CENTER);
+        badge.setPadding(dp(9), dp(5), dp(9), dp(5));
+        GradientDrawable badgeBg = new GradientDrawable();
+        badgeBg.setColor(Color.argb(45, 255, 255, 255));
+        badgeBg.setCornerRadius(dp(20));
+        badgeBg.setStroke(dp(1), Color.argb(100, 255, 225, 164));
+        badge.setBackground(badgeBg);
+        heading.addView(badge);
+        hero.addView(heading);
+
+        LinearLayout metrics = row();
+        metrics.setPadding(0, dp(13), 0, dp(2));
+        addHeroMetric(metrics, "মোট বিক্রি", "৳ " + formatMoney(sales));
+        View dividerOne = new View(this);
+        dividerOne.setBackgroundColor(Color.argb(95, 255, 255, 255));
+        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(dp(1), dp(42));
+        dividerParams.setMargins(dp(8), 0, dp(8), 0);
+        metrics.addView(dividerOne, dividerParams);
+        addHeroMetric(metrics, "মোট বকেয়া", "৳ " + formatMoney(due));
+        View dividerTwo = new View(this);
+        dividerTwo.setBackgroundColor(Color.argb(95, 255, 255, 255));
+        metrics.addView(dividerTwo, dividerParams);
+        addHeroMetric(metrics, "কম স্টক", String.valueOf(countLowStock()) + " টি");
+        hero.addView(metrics);
+        TextView hint = label("আপনার কাস্টমার, বিক্রি ও মজুত—সব এক জায়গায়", 11, false,
+                Color.rgb(226, 232, 228));
+        LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(-1, -2);
+        hintParams.topMargin = dp(9);
+        hero.addView(hint, hintParams);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.bottomMargin = dp(15);
+        listArea.addView(hero, params);
+        hero.setAlpha(0f);
+        hero.setTranslationY(dp(8));
+        hero.animate().alpha(1f).translationY(0f).setDuration(320).start();
+    }
+
+    private void addHeroMetric(LinearLayout parent, String caption, String value) {
+        LinearLayout metric = column();
+        TextView amount = label(value, 14, true, Color.WHITE);
+        amount.setMaxLines(1);
+        amount.setTextSize(13);
+        metric.addView(amount);
+        TextView metricLabel = label(caption, 10, false, Color.rgb(221, 230, 231));
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
+        labelParams.topMargin = dp(5);
+        metric.addView(metricLabel, labelParams);
+        parent.addView(metric, new LinearLayout.LayoutParams(0, -2, 1));
     }
 
     private int countLowStock() {
