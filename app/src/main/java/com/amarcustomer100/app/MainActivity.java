@@ -192,9 +192,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("50.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("50.2", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৫০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৫০.২");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(202, 164, 91), 20));
@@ -708,13 +708,13 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(-1, dp(50));
         addParams.topMargin = dp(8);
         addParams.bottomMargin = dp(10);
-        root.addView(add, 2, addParams);
+        listArea.addView(add, 0, addParams);
         add.setOnClickListener(v -> expenseDialog(-1));
 
         TextView back = action("←   হোমে ফিরুন", Color.WHITE, INK, 12);
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(40));
         backParams.bottomMargin = dp(10);
-        root.addView(back, 3, backParams);
+        listArea.addView(back, 1, backParams);
         back.setOnClickListener(v -> showCustomers());
 
         LinearLayout totals = row();
@@ -726,7 +726,7 @@ public class MainActivity extends Activity {
                 new LinearLayout.LayoutParams(0, -2, 1));
         LinearLayout.LayoutParams totalParams = new LinearLayout.LayoutParams(-1, -2);
         totalParams.bottomMargin = dp(12);
-        root.addView(totals, totalParams);
+        listArea.addView(totals, totalParams);
 
         String q = filter == null ? "" : filter.toLowerCase(Locale.ROOT).trim();
         listArea.removeAllViews();
@@ -847,7 +847,7 @@ public class MainActivity extends Activity {
         TextView back = action("←   কাস্টমার তালিকায় ফিরুন", Color.WHITE, INK, 12);
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(42));
         backParams.bottomMargin = dp(12);
-        root.addView(back, 2, backParams);
+        listArea.addView(back, 0, backParams);
         back.setOnClickListener(v -> showCustomers());
 
         LinearLayout filters = row();
@@ -864,7 +864,7 @@ public class MainActivity extends Activity {
             filters.addView(chip, chipParams);
             chip.setOnClickListener(v -> showBusinessReport(key));
         }
-        root.addView(filters, 3);
+        listArea.addView(filters);
 
         LinearLayout metrics = column();
         metrics.setPadding(dp(14), dp(14), dp(14), dp(14));
@@ -892,19 +892,19 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
         metricParams.topMargin = dp(12);
         metricParams.bottomMargin = dp(12);
-        root.addView(metrics, 4, metricParams);
+        listArea.addView(metrics, metricParams);
 
         TextView balance = label("সর্বমোট বকেয়া  ৳ " + formatMoney(sumAllDue()), 16, true,
                 darkMode ? Color.rgb(255, 205, 166) : Color.rgb(160, 73, 47));
         balance.setGravity(Gravity.CENTER);
         balance.setPadding(dp(12), dp(14), dp(12), dp(14));
         balance.setBackground(shape(darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 242, 235), Color.rgb(224, 198, 182), 16));
-        root.addView(balance, 5);
+        listArea.addView(balance);
 
         TextView export = primaryAction("↓   Excel-এ খোলার রিপোর্ট (CSV) তৈরি করুন");
         LinearLayout.LayoutParams exportParams = new LinearLayout.LayoutParams(-1, dp(48));
         exportParams.topMargin = dp(12);
-        root.addView(export, 6, exportParams);
+        listArea.addView(export, exportParams);
         export.setOnClickListener(v -> createReportCsv(period));
         listArea.addView(label("রিপোর্টের সময়সীমা: " + ("today".equals(period) ? "আজ" : "week".equals(period) ? "এই সপ্তাহ" : "month".equals(period) ? "এই মাস" : "সব সময়"), 14, true, INK));
         listArea.addView(label("রিপোর্টে " + periodCount(period) + "টি বিক্রি ও জমার লেনদেন এবং " + periodExpenseCount(period) + "টি খরচ অন্তর্ভুক্ত হয়েছে।", 12, false, MUTED));
