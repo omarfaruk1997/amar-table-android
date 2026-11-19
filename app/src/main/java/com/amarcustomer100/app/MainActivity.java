@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
 import android.graphics.Typeface;
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
     private int selectedCustomer = -1;
     private boolean darkMode = false;
     private int accentTheme = 0;
-    private static final int[] ACCENTS = {Color.rgb(15, 111, 119), Color.rgb(43, 91, 177), Color.rgb(132, 82, 155), Color.rgb(27, 132, 94)};
+    private static final int[] ACCENTS = {Color.rgb(15, 111, 119), Color.rgb(43, 91, 177), Color.rgb(132, 82, 155), Color.rgb(27, 132, 94), Color.rgb(190, 132, 42), Color.rgb(194, 76, 102), Color.rgb(54, 112, 145), Color.rgb(91, 103, 70)};
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
     private static final int REQUEST_REPORT_EXPORT = 7103;
@@ -193,9 +194,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("40.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("50.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৪০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৫০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -271,6 +272,7 @@ public class MainActivity extends Activity {
         dashParams.bottomMargin = dp(14);
         listArea.addView(dashboard, dashParams);
         addPremiumOverview();
+        addHomeInsights();
 
         TextView section = label("আপনার কাস্টমার তালিকা", 17, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
@@ -287,9 +289,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(18), dp(17), dp(17), dp(16));
+            card.setPadding(dp(19), dp(18), dp(18), dp(17));
             card.setBackground(shape(Color.WHITE, Color.rgb(205, 219, 237), 24));
-            card.setElevation(dp(8));
+            card.setElevation(dp(6));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -389,7 +391,7 @@ public class MainActivity extends Activity {
         // Place the requested home actions at the bottom of the customer list.
         LinearLayout homeActions = column();
         homeActions.setPadding(0, dp(16), 0, dp(8));
-        TextView shortcutsTitle = label("ব্যবসার প্রয়োজনীয় টুলস", 16, true, INK);
+        TextView shortcutsTitle = label("আপনার ব্যবসার স্মার্ট টুলস", 17, true, INK);
         LinearLayout.LayoutParams shortcutsTitleParams = new LinearLayout.LayoutParams(-1, dp(34));
         shortcutsTitleParams.bottomMargin = dp(7);
         homeActions.addView(shortcutsTitle, shortcutsTitleParams);
@@ -473,8 +475,8 @@ public class MainActivity extends Activity {
         GradientDrawable gradient = new GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
                 darkMode
-                    ? new int[]{Color.rgb(19, 31, 62), Color.rgb(31, 72, 139), Color.rgb(9, 117, 123)}
-                    : new int[]{Color.rgb(8, 24, 58), Color.rgb(28, 75, 151), Color.rgb(9, 139, 133)});
+                    ? new int[]{Color.rgb(15, 25, 48), ACCENTS[accentTheme], Color.rgb(9, 117, 123)}
+                    : new int[]{Color.rgb(5, 20, 48), ACCENTS[accentTheme], Color.rgb(9, 139, 133), Color.rgb(185, 132, 55)});
         gradient.setCornerRadius(dp(26));
         gradient.setStroke(dp(1), darkMode ? Color.rgb(67, 103, 116) : Color.rgb(183, 157, 111));
         hero.setBackground(gradient);
@@ -519,6 +521,32 @@ public class MainActivity extends Activity {
         hero.setAlpha(0f);
         hero.setTranslationY(dp(8));
         hero.animate().alpha(1f).translationY(0f).setDuration(320).start();
+    }
+
+    private void addHomeInsights() {
+        double sales = sumAllTransactions("sale");
+        double expenseTotal = 0;
+        for (int i=0;i<expenses.length();i++) { JSONObject e=expenses.optJSONObject(i); if(e!=null) expenseTotal+=parseMoney(e.optString("amount")); }
+        LinearLayout panel=column(); panel.setPadding(dp(16),dp(15),dp(16),dp(14));
+        panel.setBackground(shape(darkMode?Color.rgb(27,39,56):Color.WHITE,BORDER,22)); panel.setElevation(dp(5));
+        LinearLayout head=row(); head.addView(label("ব্যবসার এক নজরের সারাংশ",15,true,INK),new LinearLayout.LayoutParams(0,-2,1)); head.addView(label("LIVE",10,true,ACCENTS[accentTheme])); panel.addView(head);
+        panel.addView(label("বিক্রি বনাম খরচ",11,false,MUTED));
+        View chart=new View(this) {
+            private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas); float w=getWidth(),h=getHeight(),base=h-dp(8);
+                double max=Math.max(1,Math.max(sales,expenseTotal));
+                float sh=(float)(sales/max)*(h-dp(24)), eh=(float)(expenseTotal/max)*(h-dp(24));
+                p.setColor(ACCENTS[accentTheme]); canvas.drawRoundRect(dp(30),base-sh,dp(88),base,dp(9),dp(9),p);
+                p.setColor(Color.rgb(204,139,65)); canvas.drawRoundRect(w-dp(88),base-eh,w-dp(30),base,dp(9),dp(9),p);
+                p.setColor(themedText(MUTED)); p.setTextSize(dp(10)); canvas.drawText("বিক্রি",dp(35),h-dp(1),p); canvas.drawText("খরচ",w-dp(82),h-dp(1),p);
+            }
+        };
+        panel.addView(chart,new LinearLayout.LayoutParams(-1,dp(94)));
+        LinearLayout foot=row(); foot.addView(label("বিক্রি ৳ "+formatMoney(sales),11,true,ACCENTS[accentTheme]),new LinearLayout.LayoutParams(0,-2,1)); foot.addView(label("খরচ ৳ "+formatMoney(expenseTotal),11,true,Color.rgb(190,120,55))); panel.addView(foot);
+        TextView quick=action("✦   বিস্তারিত অ্যানালিটিক্স দেখুন",darkMode?Color.rgb(35,54,72):Color.rgb(235,244,247),darkMode?Color.rgb(210,229,244):BLUE,14);
+        LinearLayout.LayoutParams qp=new LinearLayout.LayoutParams(-1,dp(44)); qp.topMargin=dp(10); panel.addView(quick,qp); quick.setOnClickListener(v->showAnalytics("month"));
+        LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,-2); pp.bottomMargin=dp(14); listArea.addView(panel,pp);
     }
 
     private void addHeroMetric(LinearLayout parent, String caption, String value) {
@@ -1780,6 +1808,13 @@ public class MainActivity extends Activity {
         addAnalyticsMetric(grid,"বিক্রি − খরচ (আনুমানিক)",periodTotal("sale",period)-periodExpenseTotal(period),ACCENTS[accentTheme]);
         LinearLayout.LayoutParams gp=new LinearLayout.LayoutParams(-1,-2); gp.topMargin=dp(12); gp.bottomMargin=dp(12); root.addView(grid,4,gp);
         listArea.removeAllViews();
+        listArea.addView(label("বিক্রির পারফরম্যান্স",16,true,INK));
+        LinearLayout performance=column(); performance.setPadding(dp(14),dp(13),dp(14),dp(13)); performance.setBackground(shape(Color.WHITE,BORDER,18)); performance.setElevation(dp(3));
+        double totalSales=periodTotal("sale",period), totalExpenses=periodExpenseTotal(period);
+        performance.addView(label("নির্বাচিত সময়ের মোট বিক্রি",12,false,MUTED));
+        performance.addView(label("৳ "+formatMoney(totalSales),22,true,ACCENTS[accentTheme]));
+        performance.addView(label("খরচ বাদে আনুমানিক ফলাফল  ৳ "+formatMoney(totalSales-totalExpenses),12,true,totalSales>=totalExpenses?TEAL:Color.rgb(190,75,65)));
+        LinearLayout.LayoutParams perfp=new LinearLayout.LayoutParams(-1,-2); perfp.bottomMargin=dp(12); listArea.addView(performance,perfp);
         listArea.addView(label("পণ্যভিত্তিক মজুত ও মূল্য",16,true,INK));
         java.util.HashMap<String,Integer> categories=new java.util.HashMap<>();
         for(JSONObject c:customers){JSONArray ps=c.optJSONArray("products"); if(ps==null)continue; for(int i=0;i<ps.length();i++){JSONObject p=ps.optJSONObject(i);if(p==null)continue;String cat=p.optString("category","অন্যান্য");categories.put(cat,categories.containsKey(cat)?categories.get(cat)+1:1);}}
@@ -1820,7 +1855,7 @@ public class MainActivity extends Activity {
     }
 
     private void showThemePicker(){
-        String[] names={"সমুদ্র নীল","রাজকীয় নীল","বেগুনি","প্রকৃতি সবুজ"};
+        String[] names={"সমুদ্র নীল","রাজকীয় নীল","বেগুনি","প্রকৃতি সবুজ","গোল্ডেন অ্যাম্বার","রোজ পিংক","স্লেট ব্লু","অলিভ ন্যাচার"};
         new AlertDialog.Builder(this).setTitle("আপনার পছন্দের থিম").setSingleChoiceItems(names,accentTheme,(d,which)->{accentTheme=which;getPreferences(MODE_PRIVATE).edit().putInt("accent_theme",which).apply();d.dismiss();showCustomers();}).setNegativeButton("বন্ধ",null).show();
     }
 
@@ -1842,7 +1877,9 @@ public class MainActivity extends Activity {
     }
 
     private void showBackupOptions() {
-        new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার")
+        long lastBackup=getPreferences(MODE_PRIVATE).getLong("last_backup_success",0);
+        String backupStatus=lastBackup==0?"এখনো কোনো সফল ব্যাকআপ নেই":"সর্বশেষ ব্যাকআপ: "+new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",Locale.getDefault()).format(new java.util.Date(lastBackup));
+        new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার").setMessage(backupStatus)
             .setItems(new String[]{"ব্যাকআপ তৈরি করুন", "ব্যাকআপ থেকে তথ্য ফিরিয়ে আনুন"}, (dialog, which) -> {
                 if (which == 0) createBackupFile(); else chooseBackupFile();
             }).setNegativeButton("বন্ধ", null).show();
@@ -1877,7 +1914,8 @@ public class MainActivity extends Activity {
             try {
                 JSONObject backup = new JSONObject();
                 backup.put("app", "Amar Customer");
-                backup.put("version", 1);
+                backup.put("version", 2);
+                backup.put("backupFormat", "AmarCustomer50");
                 backup.put("createdAt", System.currentTimeMillis());
                 JSONArray saved = new JSONArray();
                 for (JSONObject customer : customers) saved.put(customer);
@@ -1888,6 +1926,7 @@ public class MainActivity extends Activity {
                     out.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
                     out.flush();
                 }
+                getPreferences(MODE_PRIVATE).edit().putLong("last_backup_success", System.currentTimeMillis()).apply();
                 Toast.makeText(this, "ব্যাকআপ সফলভাবে সংরক্ষণ হয়েছে।", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
                 Toast.makeText(this, "ব্যাকআপ সংরক্ষণ ব্যর্থ হয়েছে।", Toast.LENGTH_LONG).show();
