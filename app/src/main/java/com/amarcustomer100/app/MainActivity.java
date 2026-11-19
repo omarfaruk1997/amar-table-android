@@ -31,6 +31,8 @@ public class MainActivity extends Activity {
     private boolean darkMode = false;
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
+    private static final int REQUEST_REPORT_EXPORT = 7103;
+    private String pendingReportPeriod = "month";
 
     private static final int BG = Color.rgb(242, 246, 250);
     private static final int INK = Color.rgb(20, 32, 51);
@@ -182,9 +184,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("21.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("22.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২১.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২২.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -255,6 +257,12 @@ public class MainActivity extends Activity {
         backupParams.bottomMargin = dp(12);
         root.addView(backup, 4, backupParams);
         backup.setOnClickListener(v -> showBackupOptions());
+
+        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট", darkMode ? Color.rgb(34, 58, 68) : Color.rgb(226, 243, 239), darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 14);
+        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(46));
+        reportParams.bottomMargin = dp(12);
+        root.addView(reports, 5, reportParams);
+        reports.setOnClickListener(v -> showBusinessReport("month"));
 
         renderCustomers("");
         search.addTextChangedListener(watcher(s -> renderCustomers(s)));
@@ -334,6 +342,19 @@ public class MainActivity extends Activity {
             LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(30));
             countParams.topMargin = dp(4);
             card.addView(count, countParams);
+
+            LinearLayout finance = row();
+            finance.setPadding(dp(10), dp(8), dp(10), dp(8));
+            finance.setBackground(shape(darkMode ? Color.rgb(31, 47, 62) : Color.rgb(241, 247, 250), darkMode ? Color.rgb(57, 76, 92) : Color.rgb(225, 235, 240), 12));
+            TextView dueInfo = label("বকেয়া ৳ " + formatMoney(customerDue(c)), 12, true,
+                    customerDue(c) > 0 ? (darkMode ? Color.rgb(255, 174, 164) : Color.rgb(178, 63, 55)) : TEAL);
+            finance.addView(dueInfo, new LinearLayout.LayoutParams(0, -2, 1));
+            TextView salesInfo = label("বিক্রি ৳ " + formatMoney(sumTransactions(c, "sale")), 11, true, darkMode ? Color.rgb(180, 210, 235) : BLUE);
+            salesInfo.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+            finance.addView(salesInfo, new LinearLayout.LayoutParams(0, -2, 1));
+            LinearLayout.LayoutParams financeParams = new LinearLayout.LayoutParams(-1, -2);
+            financeParams.topMargin = dp(7);
+            card.addView(finance, financeParams);
 
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
@@ -526,6 +547,155 @@ public class MainActivity extends Activity {
             })
             .setNegativeButton("বাতিল", null)
             .show();
+    }
+
+
+    private long reportStart(String period) {
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        if ("week".equals(period)) cal.set(java.util.Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        else if ("month".equals(period)) cal.set(java.util.Calendar.DAY_OF_MONTH, 1);
+        return cal.getTimeInMillis();
+    }
+
+    private boolean inReportPeriod(String date, String period) {
+        if ("all".equals(period)) return true;
+        try {
+            java.util.Date parsed = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).parse(date);
+            return parsed != null && parsed.getTime() >= reportStart(period);
+        } catch (Exception ignored) { return false; }
+    }
+
+    private double periodTotal(String type, String period) {
+        double total = 0;
+        for (JSONObject customer : customers) {
+            JSONArray entries = transactions(customer);
+            for (int i = 0; i < entries.length(); i++) {
+                JSONObject entry = entries.optJSONObject(i);
+                if (entry != null && type.equals(entry.optString("type")) && inReportPeriod(entry.optString("date"), period))
+                    total += parseMoney(entry.optString("amount"));
+            }
+        }
+        return total;
+    }
+
+    private int periodCount(String period) {
+        int count = 0;
+        for (JSONObject customer : customers) {
+            JSONArray entries = transactions(customer);
+            for (int i = 0; i < entries.length(); i++) {
+                JSONObject entry = entries.optJSONObject(i);
+                if (entry != null && inReportPeriod(entry.optString("date"), period)) count++;
+            }
+        }
+        return count;
+    }
+
+    private void showBusinessReport(String period) {
+        base("ব্যবসার রিপোর্ট", "বিক্রি, জমা ও বকেয়ার সারসংক্ষেপ");
+        search.setVisibility(View.GONE);
+        TextView back = action("←   কাস্টমার তালিকায় ফিরুন", Color.WHITE, INK, 12);
+        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(42));
+        backParams.bottomMargin = dp(12);
+        root.addView(back, 2, backParams);
+        back.setOnClickListener(v -> showCustomers());
+
+        LinearLayout filters = row();
+        String[] keys = {"today", "week", "month", "all"};
+        String[] names = {"আজ", "এই সপ্তাহ", "এই মাস", "সব"};
+        for (int i = 0; i < keys.length; i++) {
+            final String key = keys[i];
+            boolean active = key.equals(period);
+            TextView chip = action(names[i], active ? Color.rgb(12, 92, 111) : (darkMode ? Color.rgb(37, 51, 70) : Color.WHITE),
+                    active ? Color.WHITE : (darkMode ? Color.rgb(220, 231, 242) : INK), 12);
+            chip.setTextSize(11);
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(0, dp(42), 1);
+            chipParams.setMargins(dp(2), 0, dp(2), 0);
+            filters.addView(chip, chipParams);
+            chip.setOnClickListener(v -> showBusinessReport(key));
+        }
+        root.addView(filters, 3);
+
+        LinearLayout metrics = column();
+        metrics.setPadding(dp(14), dp(14), dp(14), dp(14));
+        metrics.setBackground(shape(Color.WHITE, Color.rgb(218, 228, 237), 20));
+        metrics.setElevation(dp(4));
+        metrics.addView(statTile("মোট বিক্রি", "৳ " + formatMoney(periodTotal("sale", period)), "↗", BLUE));
+        View divider = new View(this);
+        divider.setBackgroundColor(BORDER);
+        LinearLayout.LayoutParams dv = new LinearLayout.LayoutParams(-1, dp(1));
+        dv.setMargins(dp(8), dp(10), dp(8), dp(10));
+        metrics.addView(divider, dv);
+        LinearLayout pair = row();
+        pair.addView(statTile("মোট জমা", "৳ " + formatMoney(periodTotal("payment", period)), "✓", TEAL),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        pair.addView(statTile("লেনদেন", String.valueOf(periodCount(period)), "≋", Color.rgb(157, 112, 43)),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        metrics.addView(pair);
+        LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
+        metricParams.topMargin = dp(12);
+        metricParams.bottomMargin = dp(12);
+        root.addView(metrics, 4, metricParams);
+
+        TextView balance = label("সর্বমোট বকেয়া  ৳ " + formatMoney(sumAllDue()), 16, true,
+                darkMode ? Color.rgb(255, 205, 166) : Color.rgb(160, 73, 47));
+        balance.setGravity(Gravity.CENTER);
+        balance.setPadding(dp(12), dp(14), dp(12), dp(14));
+        balance.setBackground(shape(darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 242, 235), Color.rgb(224, 198, 182), 16));
+        root.addView(balance, 5);
+
+        TextView export = primaryAction("↓   Excel-এ খোলার রিপোর্ট (CSV) তৈরি করুন");
+        LinearLayout.LayoutParams exportParams = new LinearLayout.LayoutParams(-1, dp(48));
+        exportParams.topMargin = dp(12);
+        root.addView(export, 6, exportParams);
+        export.setOnClickListener(v -> createReportCsv(period));
+        listArea.addView(label("রিপোর্টের সময়সীমা: " + ("today".equals(period) ? "আজ" : "week".equals(period) ? "এই সপ্তাহ" : "month".equals(period) ? "এই মাস" : "সব সময়"), 14, true, INK));
+        listArea.addView(label("রিপোর্টে " + periodCount(period) + "টি বিক্রি ও জমার লেনদেন অন্তর্ভুক্ত হয়েছে।", 12, false, MUTED));
+    }
+
+    private String csvCell(String value) {
+        String safe = value == null ? "" : value.replace("\"", "\"\"");
+        return "\"" + safe + "\"";
+    }
+
+    private void createReportCsv(String period) {
+        pendingReportPeriod = period;
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/csv");
+        String label = "today".equals(period) ? "Today" : "week".equals(period) ? "Weekly" : "month".equals(period) ? "Monthly" : "All";
+        intent.putExtra(Intent.EXTRA_TITLE, "AmarCustomer-Report-" + label + ".csv");
+        startActivityForResult(intent, REQUEST_REPORT_EXPORT);
+    }
+
+    private void writeReportCsv(Uri uri, String period) {
+        try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+            if (out == null) throw new Exception("Output unavailable");
+            StringBuilder csv = new StringBuilder("\uFEFFকাস্টমারের নাম,ধরন,পরিমাণ,তারিখ,বিবরণ\r\n");
+            for (JSONObject customer : customers) {
+                JSONArray entries = transactions(customer);
+                for (int i = 0; i < entries.length(); i++) {
+                    JSONObject entry = entries.optJSONObject(i);
+                    if (entry == null || !inReportPeriod(entry.optString("date"), period)) continue;
+                    csv.append(csvCell(customer.optString("name"))).append(',')
+                       .append(csvCell("sale".equals(entry.optString("type")) ? "বিক্রি" : "জমা")).append(',')
+                       .append(csvCell(entry.optString("amount"))).append(',')
+                       .append(csvCell(entry.optString("date"))).append(',')
+                       .append(csvCell(entry.optString("note"))).append("\r\n");
+                }
+            }
+            csv.append("\r\nসর্বমোট বিক্রি,").append(formatMoney(periodTotal("sale", period))).append("\r\n");
+            csv.append("সর্বমোট জমা,").append(formatMoney(periodTotal("payment", period))).append("\r\n");
+            csv.append("সর্বমোট বকেয়া,").append(formatMoney(sumAllDue())).append("\r\n");
+            out.write(csv.toString().getBytes(StandardCharsets.UTF_8));
+            out.flush();
+            Toast.makeText(this, "রিপোর্ট CSV ফাইলে সংরক্ষিত হয়েছে।", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "রিপোর্ট সংরক্ষণ করা যায়নি।", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void showLedger() {
@@ -912,7 +1082,9 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri uri = data.getData();
-        if (requestCode == REQUEST_BACKUP_EXPORT) {
+        if (requestCode == REQUEST_REPORT_EXPORT) {
+            writeReportCsv(uri, pendingReportPeriod);
+        } else if (requestCode == REQUEST_BACKUP_EXPORT) {
             try {
                 JSONObject backup = new JSONObject();
                 backup.put("app", "Amar Customer");
