@@ -32,6 +32,8 @@ public class MainActivity extends Activity {
     private EditText search;
     private int selectedCustomer = -1;
     private boolean darkMode = false;
+    private int accentTheme = 0;
+    private static final int[] ACCENTS = {Color.rgb(15, 111, 119), Color.rgb(43, 91, 177), Color.rgb(132, 82, 155), Color.rgb(27, 132, 94)};
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
     private static final int REQUEST_REPORT_EXPORT = 7103;
@@ -50,8 +52,10 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         darkMode = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", false);
+        accentTheme = getPreferences(MODE_PRIVATE).getInt("accent_theme", 0);
         loadData();
         showCustomers();
+        if (!getPreferences(MODE_PRIVATE).getString("app_pin_hash", "").isEmpty()) promptPinLock();
     }
 
     private int dp(float v) {
@@ -125,7 +129,7 @@ public class MainActivity extends Activity {
         TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
         GradientDrawable premium = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(10, 43, 78), Color.rgb(15, 111, 119), Color.rgb(126, 91, 45)});
+                new int[]{Color.rgb(10, 43, 78), ACCENTS[accentTheme], Color.rgb(126, 91, 45)});
         premium.setCornerRadius(dp(16));
         premium.setStroke(dp(1), Color.rgb(55, 119, 132));
         button.setBackground(premium);
@@ -189,9 +193,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("31.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("40.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৩১.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ৪০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -410,6 +414,30 @@ public class MainActivity extends Activity {
         expenseParams.bottomMargin = dp(9);
         homeActions.addView(expenseButton, expenseParams);
         expenseButton.setOnClickListener(v -> showExpenses(""));
+
+        TextView analytics = action("▥   স্মার্ট ব্যবসা অ্যানালিটিক্স", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255), darkMode ? Color.rgb(186, 216, 255) : BLUE, 15);
+        LinearLayout.LayoutParams analyticsParams = new LinearLayout.LayoutParams(-1, dp(48));
+        analyticsParams.bottomMargin = dp(9);
+        homeActions.addView(analytics, analyticsParams);
+        analytics.setOnClickListener(v -> showAnalytics("month"));
+
+        TextView reminders = action("◷   বকেয়া ও পেমেন্ট রিমাইন্ডার", darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 242, 232), darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
+        LinearLayout.LayoutParams reminderParams = new LinearLayout.LayoutParams(-1, dp(48));
+        reminderParams.bottomMargin = dp(9);
+        homeActions.addView(reminders, reminderParams);
+        reminders.setOnClickListener(v -> showDueReminders());
+
+        TextView themes = action("✦   থিম ও রঙ কাস্টমাইজ করুন", darkMode ? Color.rgb(48, 43, 65) : Color.rgb(243, 237, 252), darkMode ? Color.rgb(216, 190, 255) : Color.rgb(106, 72, 150), 15);
+        LinearLayout.LayoutParams themeMenuParams = new LinearLayout.LayoutParams(-1, dp(48));
+        themeMenuParams.bottomMargin = dp(9);
+        homeActions.addView(themes, themeMenuParams);
+        themes.setOnClickListener(v -> showThemePicker());
+
+        TextView security = action("▣   অ্যাপ PIN নিরাপত্তা", darkMode ? Color.rgb(34, 57, 75) : Color.rgb(231, 242, 251), darkMode ? Color.rgb(176, 218, 245) : BLUE, 15);
+        LinearLayout.LayoutParams securityParams = new LinearLayout.LayoutParams(-1, dp(48));
+        securityParams.bottomMargin = dp(9);
+        homeActions.addView(security, securityParams);
+        security.setOnClickListener(v -> managePinSecurity());
 
         // Backup and restore must always remain the final home-screen action.
         TextView stockButton = action("▦   পণ্যের স্টক ব্যবস্থাপনা",
@@ -1384,6 +1412,12 @@ public class MainActivity extends Activity {
         summaryParams.bottomMargin = dp(12);
         root.addView(summary, 4, summaryParams);
 
+        TextView profile = primaryAction("◉   কাস্টমার প্রোফাইল ও সম্পূর্ণ হিসাব");
+        LinearLayout.LayoutParams profileParams = new LinearLayout.LayoutParams(-1, dp(46));
+        profileParams.bottomMargin = dp(9);
+        root.addView(profile, 5, profileParams);
+        profile.setOnClickListener(v -> showCustomerProfile(selectedCustomer));
+
         TextView shareReport = action("↗   কাস্টমার রিপোর্ট শেয়ার করুন",
                 darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
                 darkMode ? Color.rgb(186, 216, 255) : Color.rgb(31, 75, 145), 13);
@@ -1570,7 +1604,8 @@ public class MainActivity extends Activity {
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            info.addView(label("মজুত: " + stock + " টি", 12, true,
+            String category = p.optString("category", "অন্যান্য");
+            info.addView(label("ধরন: " + category + "   •   মজুত: " + stock + " টি", 12, true,
                     parseMoney(stock) <= 3 ? Color.rgb(190, 90, 48) : TEAL));
             TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));
             priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));
@@ -1624,11 +1659,16 @@ public class MainActivity extends Activity {
         EditText name = field("পণ্যের নাম", android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
         EditText price = field("একক দাম", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
         EditText stock = field("বর্তমান মজুতের পরিমাণ (ঐচ্ছিক)", android.text.InputType.TYPE_CLASS_NUMBER, false);
+        Spinner category = new Spinner(this);
+        String[] categories = {"সাধারণ", "খাদ্যপণ্য", "পোশাক", "ইলেকট্রনিক্স", "প্রসাধনী", "গৃহস্থালি", "অন্যান্য"};
+        category.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, categories));
         form.addView(name);
         addGap(form, 10);
         form.addView(price);
         addGap(form, 10);
         form.addView(stock);
+        addGap(form, 8);
+        form.addView(category, new LinearLayout.LayoutParams(-1, dp(48)));
 
         JSONArray arr = customers.get(selectedCustomer).optJSONArray("products");
         if (index >= 0) {
@@ -1636,6 +1676,7 @@ public class MainActivity extends Activity {
             name.setText(p.optString("name"));
             price.setText(p.optString("price"));
             stock.setText(p.optString("stock"));
+            for (int i = 0; i < categories.length; i++) if (categories[i].equals(p.optString("category", "অন্যান্য"))) category.setSelection(i);
         }
 
         new AlertDialog.Builder(this)
@@ -1651,6 +1692,7 @@ public class MainActivity extends Activity {
                         p.put("name", n);
                         p.put("price", pr);
                         p.put("stock", st.isEmpty() ? "0" : st);
+                        p.put("category", category.getSelectedItem().toString());
                         if (index < 0) arr.put(p);
                         saveData();
                         showProducts(selectedCustomer);
@@ -1661,6 +1703,143 @@ public class MainActivity extends Activity {
             .show();
     }
 
+
+
+    private void showCustomerProfile(int index) {
+        if (index < 0 || index >= customers.size()) return;
+        selectedCustomer = index;
+        JSONObject customer = customers.get(index);
+        base("কাস্টমার প্রোফাইল", customer.optString("name") + " • সম্পূর্ণ ব্যবসায়িক সম্পর্ক");
+        search.setVisibility(View.GONE);
+        TextView back = action("←   পণ্যের তালিকায় ফিরুন", Color.WHITE, INK, 12);
+        root.addView(back, 2, new LinearLayout.LayoutParams(-1, dp(42)));
+        back.setOnClickListener(v -> showProducts(index));
+        listArea.removeAllViews();
+        LinearLayout hero = column();
+        hero.setPadding(dp(18), dp(18), dp(18), dp(18));
+        GradientDrawable heroBg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
+                new int[]{Color.rgb(7, 35, 69), ACCENTS[accentTheme], Color.rgb(18, 105, 105)});
+        heroBg.setCornerRadius(dp(22));
+        hero.setBackground(heroBg);
+        hero.setElevation(dp(7));
+        hero.addView(label(customer.optString("name"), 22, true, Color.WHITE));
+        hero.addView(label("⌖  " + customer.optString("address", "ঠিকানা দেওয়া হয়নি"), 13, false, Color.WHITE));
+        hero.addView(label("☎  " + customer.optString("phone", "মোবাইল দেওয়া হয়নি"), 13, true, Color.WHITE));
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2); hp.bottomMargin = dp(12);
+        listArea.addView(hero, hp);
+        LinearLayout metrics = row();
+        metrics.setPadding(dp(12), dp(14), dp(12), dp(14));
+        metrics.setBackground(shape(Color.WHITE, BORDER, 18));
+        metrics.addView(statTile("মোট বিক্রি", "৳ " + formatMoney(sumTransactions(customer, "sale")), "↗", BLUE), new LinearLayout.LayoutParams(0,-2,1));
+        metrics.addView(statTile("মোট জমা", "৳ " + formatMoney(sumTransactions(customer, "payment")), "✓", TEAL), new LinearLayout.LayoutParams(0,-2,1));
+        metrics.addView(statTile("বকেয়া", "৳ " + formatMoney(customerDue(customer)), "!", Color.rgb(180,75,55)), new LinearLayout.LayoutParams(0,-2,1));
+        LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(-1,-2); mp.bottomMargin = dp(12);
+        listArea.addView(metrics, mp);
+        LinearLayout actions = column();
+        TextView reminder = primaryAction("◷   পেমেন্ট রিমাইন্ডার শেয়ার করুন");
+        actions.addView(reminder, new LinearLayout.LayoutParams(-1, dp(46)));
+        reminder.setOnClickListener(v -> shareDueReminder(customer));
+        TextView invoice = action("▤   PDF ইনভয়েস তৈরি করুন", darkMode ? Color.rgb(37,51,70) : Color.rgb(232,242,255), BLUE, 13);
+        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(-1, dp(44)); ip.topMargin = dp(8);
+        actions.addView(invoice, ip); invoice.setOnClickListener(v -> shareDigitalInvoice(customer));
+        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1,-2); ap.bottomMargin = dp(12);
+        listArea.addView(actions, ap);
+        listArea.addView(label("লেনদেনের সম্পূর্ণ ইতিহাস", 17, true, INK));
+        JSONArray entries = transactions(customer);
+        if (entries.length() == 0) listArea.addView(emptyState("≋","এখনো লেনদেন নেই","বিক্রি বা জমার হিসাব যোগ করলে এখানে দেখা যাবে।"));
+        for (int i=entries.length()-1;i>=0;i--) {
+            JSONObject e=entries.optJSONObject(i); if(e==null) continue;
+            boolean sale="sale".equals(e.optString("type"));
+            LinearLayout card=column(); card.setPadding(dp(13),dp(12),dp(13),dp(12));
+            card.setBackground(shape(Color.WHITE,BORDER,15)); card.setElevation(dp(2));
+            LinearLayout top=row();
+            top.addView(label(sale ? "বিক্রয়" : "টাকা জমা",14,true,sale?BLUE:TEAL),new LinearLayout.LayoutParams(0,-2,1));
+            top.addView(label("৳ "+formatMoney(parseMoney(e.optString("amount"))),15,true,sale?BLUE:TEAL));
+            card.addView(top);
+            card.addView(label(e.optString("date")+"  •  "+e.optString("note",""),12,false,MUTED));
+            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2); cp.bottomMargin=dp(7);
+            listArea.addView(card,cp);
+        }
+    }
+
+    private void showAnalytics(String period) {
+        selectedCustomer = -1;
+        base("স্মার্ট ব্যবসা অ্যানালিটিক্স", "বিক্রি • জমা • খরচ • নিট ফলাফল");
+        search.setVisibility(View.GONE);
+        TextView back=action("←   হোমে ফিরুন",Color.WHITE,INK,12);
+        root.addView(back,2,new LinearLayout.LayoutParams(-1,dp(42)));
+        back.setOnClickListener(v->showCustomers());
+        LinearLayout filters=row();
+        String[] keys={"today","week","month","all"}, names={"আজ","সপ্তাহ","মাস","সব"};
+        for(int i=0;i<keys.length;i++){ final String k=keys[i]; TextView chip=action(names[i],k.equals(period)?ACCENTS[accentTheme]:(darkMode?Color.rgb(37,51,70):Color.WHITE),k.equals(period)?Color.WHITE:INK,12); LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(0,dp(40),1); cp.setMargins(dp(2),dp(9),dp(2),dp(9)); filters.addView(chip,cp); chip.setOnClickListener(v->showAnalytics(k)); }
+        root.addView(filters,3);
+        LinearLayout grid=column(); grid.setPadding(dp(14),dp(14),dp(14),dp(14)); grid.setBackground(shape(Color.WHITE,BORDER,20)); grid.setElevation(dp(4));
+        addAnalyticsMetric(grid,"বিক্রি",periodTotal("sale",period),BLUE);
+        addAnalyticsMetric(grid,"জমা",periodTotal("payment",period),TEAL);
+        addAnalyticsMetric(grid,"ব্যবসার খরচ",periodExpenseTotal(period),Color.rgb(180,75,55));
+        addAnalyticsMetric(grid,"বিক্রি − খরচ (আনুমানিক)",periodTotal("sale",period)-periodExpenseTotal(period),ACCENTS[accentTheme]);
+        LinearLayout.LayoutParams gp=new LinearLayout.LayoutParams(-1,-2); gp.topMargin=dp(12); gp.bottomMargin=dp(12); root.addView(grid,4,gp);
+        listArea.removeAllViews();
+        listArea.addView(label("পণ্যভিত্তিক মজুত ও মূল্য",16,true,INK));
+        java.util.HashMap<String,Integer> categories=new java.util.HashMap<>();
+        for(JSONObject c:customers){JSONArray ps=c.optJSONArray("products"); if(ps==null)continue; for(int i=0;i<ps.length();i++){JSONObject p=ps.optJSONObject(i);if(p==null)continue;String cat=p.optString("category","অন্যান্য");categories.put(cat,categories.containsKey(cat)?categories.get(cat)+1:1);}}
+        if(categories.isEmpty()) listArea.addView(emptyState("▦","পণ্য নেই","পণ্য যোগ করলে ক্যাটাগরি অনুযায়ী বিশ্লেষণ দেখা যাবে."));
+        for(String cat:categories.keySet()){LinearLayout tile=row();tile.setPadding(dp(12),dp(11),dp(12),dp(11));tile.setBackground(shape(Color.WHITE,BORDER,13));tile.addView(label(cat,14,true,INK),new LinearLayout.LayoutParams(0,-2,1));tile.addView(label(categories.get(cat)+"টি পণ্য",13,true,ACCENTS[accentTheme]));LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=dp(6);listArea.addView(tile,tp);}
+        listArea.addView(label("খরচের খাতভিত্তিক সারাংশ",16,true,INK));
+        java.util.HashMap<String,Double> expenseMap=new java.util.HashMap<>();
+        for(int i=0;i<expenses.length();i++){JSONObject e=expenses.optJSONObject(i);if(e==null||!inReportPeriod(e.optString("date"),period))continue;String cat=e.optString("category","অন্যান্য");expenseMap.put(cat,(expenseMap.containsKey(cat)?expenseMap.get(cat):0)+parseMoney(e.optString("amount")));}
+        for(String cat:expenseMap.keySet()){listArea.addView(label(cat+"  •  ৳ "+formatMoney(expenseMap.get(cat)),13,false,MUTED));}
+    }
+
+    private void addAnalyticsMetric(LinearLayout parent,String title,double amount,int color){
+        TextView metric=label(title+"     ৳ "+formatMoney(amount),15,true,color);
+        metric.setPadding(dp(7),dp(9),dp(7),dp(9)); parent.addView(metric);
+    }
+
+    private void showDueReminders(){
+        selectedCustomer=-1; base("বকেয়া রিমাইন্ডার","যাদের কাছে টাকা পাওনা আছে");
+        search.setVisibility(View.GONE);
+        TextView back=action("←   হোমে ফিরুন",Color.WHITE,INK,12);root.addView(back,2,new LinearLayout.LayoutParams(-1,dp(42)));back.setOnClickListener(v->showCustomers());
+        listArea.removeAllViews(); int found=0;
+        for(JSONObject c:customers){double due=customerDue(c);if(due<=0)continue;found++;
+            LinearLayout card=column();card.setPadding(dp(15),dp(14),dp(15),dp(14));card.setBackground(shape(Color.WHITE,BORDER,18));card.setElevation(dp(3));
+            card.addView(label(c.optString("name"),16,true,INK));
+            card.addView(label("বকেয়া ৳ "+formatMoney(due)+"   •   "+c.optString("phone"),13,true,Color.rgb(180,75,55)));
+            TextView send=primaryAction("↗   রিমাইন্ডার পাঠান");LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,dp(42));sp.topMargin=dp(9);card.addView(send,sp);send.setOnClickListener(v->shareDueReminder(c));
+            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(9);listArea.addView(card,cp);
+        }
+        if(found==0)listArea.addView(emptyState("✓","কোনো বকেয়া নেই","সব কাস্টমারের হিসাব পরিশোধিত।"));
+    }
+
+    private void shareDueReminder(JSONObject customer){
+        double due=customerDue(customer);
+        String phone=customer.optString("phone","");
+        String msg="প্রিয় "+customer.optString("name")+", আপনার কাছে আমাদের বকেয়া রয়েছে ৳ "+formatMoney(due)+". অনুগ্রহ করে সুবিধামতো পরিশোধ করবেন। ধন্যবাদ — আমার কাস্টমার";
+        Intent send=new Intent(Intent.ACTION_SEND);send.setType("text/plain");send.putExtra(Intent.EXTRA_TEXT,msg);
+        try{startActivity(Intent.createChooser(send,"পেমেন্ট রিমাইন্ডার শেয়ার করুন"));}catch(Exception e){Toast.makeText(this,"শেয়ার করা যাচ্ছে না।",Toast.LENGTH_SHORT).show();}
+    }
+
+    private void showThemePicker(){
+        String[] names={"সমুদ্র নীল","রাজকীয় নীল","বেগুনি","প্রকৃতি সবুজ"};
+        new AlertDialog.Builder(this).setTitle("আপনার পছন্দের থিম").setSingleChoiceItems(names,accentTheme,(d,which)->{accentTheme=which;getPreferences(MODE_PRIVATE).edit().putInt("accent_theme",which).apply();d.dismiss();showCustomers();}).setNegativeButton("বন্ধ",null).show();
+    }
+
+    private String pinHash(String pin){
+        try{java.security.MessageDigest md=java.security.MessageDigest.getInstance("SHA-256");byte[] bytes=md.digest(pin.getBytes(StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.US,"%02x",b));return out.toString();}catch(Exception e){return pin;}
+    }
+
+    private void promptPinLock(){
+        EditText pin=field("৪-৬ সংখ্যার PIN লিখুন",android.text.InputType.TYPE_CLASS_NUMBER|android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD,false);
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("অ্যাপ লক").setMessage("আপনার তথ্য দেখতে PIN দিন।").setView(pin).setCancelable(false).setPositiveButton("খুলুন",null).create();
+        dialog.setOnShowListener(v->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(w->{String value=pin.getText().toString();if(pinHash(value).equals(getPreferences(MODE_PRIVATE).getString("app_pin_hash",""))){dialog.dismiss();}else{pin.setError("PIN সঠিক নয়");}}));
+        dialog.show();
+    }
+
+    private void managePinSecurity(){
+        String existing=getPreferences(MODE_PRIVATE).getString("app_pin_hash","");
+        if(existing.isEmpty()){EditText pin=field("নতুন ৪-৬ সংখ্যার PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("PIN চালু করুন").setView(pin).setPositiveButton("চালু", (d,w)->{String p=pin.getText().toString();if(p.length()<4||p.length()>6){Toast.makeText(this,"৪ থেকে ৬ সংখ্যার PIN দিন।",Toast.LENGTH_SHORT).show();return;}getPreferences(MODE_PRIVATE).edit().putString("app_pin_hash",pinHash(p)).apply();Toast.makeText(this,"PIN নিরাপত্তা চালু হয়েছে।",Toast.LENGTH_SHORT).show();}).setNegativeButton("বাতিল",null).show();}
+        else{EditText current=field("বর্তমান PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("PIN যাচাই").setView(current).setPositiveButton("পরবর্তী", (d,w)->{if(!pinHash(current.getText().toString()).equals(existing)){Toast.makeText(this,"PIN সঠিক নয়।",Toast.LENGTH_SHORT).show();return;}new AlertDialog.Builder(this).setTitle("PIN ব্যবস্থাপনা").setItems(new String[]{"PIN পরিবর্তন","PIN বন্ধ করুন"},(dd,which)->{if(which==1){getPreferences(MODE_PRIVATE).edit().remove("app_pin_hash").apply();Toast.makeText(this,"PIN বন্ধ হয়েছে।",Toast.LENGTH_SHORT).show();}else{EditText next=field("নতুন ৪-৬ সংখ্যার PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("নতুন PIN").setView(next).setPositiveButton("সংরক্ষণ",(ddd,www)->{String p=next.getText().toString();if(p.length()<4||p.length()>6){Toast.makeText(this,"৪-৬ সংখ্যার PIN দিন।",Toast.LENGTH_SHORT).show();return;}getPreferences(MODE_PRIVATE).edit().putString("app_pin_hash",pinHash(p)).apply();Toast.makeText(this,"PIN পরিবর্তন হয়েছে।",Toast.LENGTH_SHORT).show();}).setNegativeButton("বাতিল",null).show();}}).show();}).setNegativeButton("বাতিল",null).show();}
+    }
 
     private void showBackupOptions() {
         new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার")
