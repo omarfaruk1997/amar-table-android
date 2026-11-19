@@ -182,9 +182,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("20.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("21.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২০.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২১.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
