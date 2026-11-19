@@ -227,41 +227,6 @@ public class MainActivity extends Activity {
         selectedCustomer = -1;
         base("আমার কাস্টমার", "আপনার ব্যবসার স্মার্ট কাস্টমার খাতা");
 
-        // Keep the three primary actions directly below the brand header.
-        LinearLayout homeActions = column();
-        homeActions.setPadding(0, dp(12), 0, dp(4));
-        root.addView(homeActions, 1);
-
-        TextView add = primaryAction("＋   নতুন কাস্টমার যোগ করুন");
-        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(54));
-        ap.bottomMargin = dp(10);
-        homeActions.addView(add, ap);
-        add.setOnClickListener(v -> customerDialog(-1));
-
-        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট",
-                darkMode ? Color.rgb(27, 65, 66) : Color.rgb(226, 243, 239),
-                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 15);
-        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(48));
-        reportParams.bottomMargin = dp(9);
-        homeActions.addView(reports, reportParams);
-        reports.setOnClickListener(v -> showBusinessReport("month"));
-
-        TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
-                darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
-                darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
-        LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(48));
-        backupParams.bottomMargin = dp(8);
-        homeActions.addView(backup, backupParams);
-        backup.setOnClickListener(v -> showBackupOptions());
-
-        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
-                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
-                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
-        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
-        expenseParams.bottomMargin = dp(8);
-        homeActions.addView(expenseButton, expenseParams);
-        expenseButton.setOnClickListener(v -> showExpenses(""));
-
         renderCustomers("");
         search.addTextChangedListener(watcher(s -> renderCustomers(s)));
     }
@@ -412,6 +377,42 @@ public class MainActivity extends Activity {
             emptyParams.topMargin = dp(12);
             listArea.addView(empty, emptyParams);
         }
+        // Place the requested home actions at the bottom of the customer list.
+        LinearLayout homeActions = column();
+        homeActions.setPadding(0, dp(16), 0, dp(8));
+        TextView add = primaryAction("＋   নতুন কাস্টমার যোগ করুন");
+        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(54));
+        ap.bottomMargin = dp(10);
+        homeActions.addView(add, ap);
+        add.setOnClickListener(v -> customerDialog(-1));
+
+        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট",
+                darkMode ? Color.rgb(27, 65, 66) : Color.rgb(226, 243, 239),
+                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 15);
+        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(48));
+        reportParams.bottomMargin = dp(9);
+        homeActions.addView(reports, reportParams);
+        reports.setOnClickListener(v -> showBusinessReport("month"));
+
+        TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
+                darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
+                darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
+        LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(48));
+        backupParams.bottomMargin = dp(8);
+        homeActions.addView(backup, backupParams);
+        backup.setOnClickListener(v -> showBackupOptions());
+
+        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
+                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
+                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
+        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
+        expenseParams.bottomMargin = dp(8);
+        homeActions.addView(expenseButton, expenseParams);
+        expenseButton.setOnClickListener(v -> showExpenses(""));
+
+        LinearLayout.LayoutParams homeActionsParams = new LinearLayout.LayoutParams(-1, -2);
+        homeActionsParams.topMargin = dp(8);
+        listArea.addView(homeActions, homeActionsParams);
     }
 
     private LinearLayout emptyState(String symbol, String heading, String message) {
