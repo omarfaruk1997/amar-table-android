@@ -568,7 +568,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < list.length(); i++) {
             JSONObject item = list.optJSONObject(i);
             if (item != null && type.equals(item.optString("type")))
-                total += parseMoney(item.optString("amount"));
+                total += expenseAmount(item);
         }
         return total;
     }
@@ -645,10 +645,24 @@ public class MainActivity extends Activity {
 
     private boolean inReportPeriod(String date, String period) {
         if ("all".equals(period)) return true;
-        try {
-            java.util.Date parsed = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).parse(date);
-            return parsed != null && parsed.getTime() >= reportStart(period);
-        } catch (Exception ignored) { return false; }
+        if (date == null || date.trim().isEmpty()) return false;
+        String[] patterns = {"dd-MM-yyyy HH:mm", "dd-MM-yyyy", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"};
+        for (String pattern : patterns) {
+            try {
+                java.text.SimpleDateFormat parser = new java.text.SimpleDateFormat(pattern, Locale.getDefault());
+                parser.setLenient(false);
+                java.util.Date parsed = parser.parse(date.trim());
+                if (parsed != null) return parsed.getTime() >= reportStart(period);
+            } catch (Exception ignored) {}
+        }
+        return false;
+    }
+
+    private double expenseAmount(JSONObject item) {
+        if (item == null) return 0;
+        String amount = item.optString("amount", "");
+        if (amount.trim().isEmpty()) amount = item.optString("value", item.optString("cost", ""));
+        return parseMoney(amount);
     }
 
     private double periodTotal(String type, String period) {
@@ -731,7 +745,7 @@ public class MainActivity extends Activity {
             card.setElevation(dp(3));
             LinearLayout top = row();
             top.addView(label(title, 15, true, INK), new LinearLayout.LayoutParams(0, -2, 1));
-            top.addView(label("৳ " + formatMoney(parseMoney(item.optString("amount"))), 15, true,
+            top.addView(label("৳ " + formatMoney(expenseAmount(item)), 15, true,
                     darkMode ? Color.rgb(255, 190, 170) : Color.rgb(147, 93, 49)));
             card.addView(top);
             TextView detail = label(category + "  •  " + date, 12, false, MUTED);
@@ -1375,7 +1389,7 @@ public class MainActivity extends Activity {
             if (incomingExpenses != null) {
                 for (int i = 0; i < incomingExpenses.length(); i++) {
                     JSONObject expense = incomingExpenses.optJSONObject(i);
-                    if (expense == null || parseMoney(expense.optString("amount")) <= 0)
+                    if (expense == null || expenseAmount(expense) <= 0)
                         throw new Exception("Invalid expense");
                     checkedExpenses.put(expense);
                 }
