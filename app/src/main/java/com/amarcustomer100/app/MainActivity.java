@@ -185,9 +185,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("25.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("26.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৫.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৬.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -394,6 +394,15 @@ public class MainActivity extends Activity {
         homeActions.addView(reports, reportParams);
         reports.setOnClickListener(v -> showBusinessReport("month"));
 
+        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
+                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
+                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
+        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
+        expenseParams.bottomMargin = dp(9);
+        homeActions.addView(expenseButton, expenseParams);
+        expenseButton.setOnClickListener(v -> showExpenses(""));
+
+        // Backup and restore must always remain the final home-screen action.
         TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
                 darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
                 darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
@@ -401,14 +410,6 @@ public class MainActivity extends Activity {
         backupParams.bottomMargin = dp(8);
         homeActions.addView(backup, backupParams);
         backup.setOnClickListener(v -> showBackupOptions());
-
-        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
-                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
-                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
-        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
-        expenseParams.bottomMargin = dp(8);
-        homeActions.addView(expenseButton, expenseParams);
-        expenseButton.setOnClickListener(v -> showExpenses(""));
 
         LinearLayout.LayoutParams homeActionsParams = new LinearLayout.LayoutParams(-1, -2);
         homeActionsParams.topMargin = dp(8);
@@ -1086,6 +1087,12 @@ public class MainActivity extends Activity {
         root.addView(shareReport, shareParams);
         shareReport.setOnClickListener(v -> shareCustomerReport(c));
 
+        TextView invoice = primaryAction("▤   ডিজিটাল ইনভয়েস / রসিদ শেয়ার");
+        LinearLayout.LayoutParams invoiceParams = new LinearLayout.LayoutParams(-1, dp(46));
+        invoiceParams.bottomMargin = dp(10);
+        root.addView(invoice, invoiceParams);
+        invoice.setOnClickListener(v -> shareDigitalInvoice(c));
+
         renderProducts("");
         search.addTextChangedListener(watcher(s -> renderProducts(s)));
     }
@@ -1123,6 +1130,35 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void shareDigitalInvoice(JSONObject customer) {
+        try {
+            StringBuilder receipt = new StringBuilder();
+            receipt.append("আমার কাস্টমার — বিক্রয় রসিদ\\n");
+            receipt.append("তারিখ: ").append(new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(new java.util.Date())).append("\\n");
+            receipt.append("কাস্টমার: ").append(customer.optString("name")).append("\\n");
+            receipt.append("মোবাইল: ").append(customer.optString("phone", "—")).append("\\n\\nপণ্যের বিবরণ\\n");
+            JSONArray items = customer.optJSONArray("products");
+            double total = 0;
+            if (items != null) for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.optJSONObject(i);
+                if (item == null) continue;
+                double price = parseMoney(item.optString("price"));
+                total += price;
+                receipt.append(i + 1).append(". ").append(item.optString("name"))
+                    .append(" — ৳ ").append(formatMoney(price)).append("\\n");
+            }
+            receipt.append("\\nসর্বমোট: ৳ ").append(formatMoney(total));
+            receipt.append("\\n\\nধন্যবাদ।");
+            Intent send = new Intent(Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(Intent.EXTRA_SUBJECT, "বিক্রয় রসিদ — " + customer.optString("name"));
+            send.putExtra(Intent.EXTRA_TEXT, receipt.toString());
+            startActivity(Intent.createChooser(send, "ডিজিটাল রসিদ শেয়ার করুন"));
+        } catch (Exception e) {
+            Toast.makeText(this, "রসিদ তৈরি করা যায়নি।", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
@@ -1140,6 +1176,7 @@ public class MainActivity extends Activity {
             final int ix = i;
             String name = p.optString("name");
             String price = p.optString("price");
+            String stock = p.optString("stock", "0");
             if (!name.toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = row();
@@ -1159,6 +1196,8 @@ public class MainActivity extends Activity {
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
+            info.addView(label("মজুত: " + stock + " টি", 12, true,
+                    parseMoney(stock) <= 3 ? Color.rgb(190, 90, 48) : TEAL));
             TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));
             priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));
             priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));
@@ -1209,16 +1248,20 @@ public class MainActivity extends Activity {
         LinearLayout form = column();
         form.setPadding(dp(4), dp(5), dp(4), 0);
         EditText name = field("পণ্যের নাম", android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
-        EditText price = field("দাম", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
+        EditText price = field("একক দাম", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
+        EditText stock = field("বর্তমান মজুতের পরিমাণ (ঐচ্ছিক)", android.text.InputType.TYPE_CLASS_NUMBER, false);
         form.addView(name);
         addGap(form, 10);
         form.addView(price);
+        addGap(form, 10);
+        form.addView(stock);
 
         JSONArray arr = customers.get(selectedCustomer).optJSONArray("products");
         if (index >= 0) {
             JSONObject p = arr.optJSONObject(index);
             name.setText(p.optString("name"));
             price.setText(p.optString("price"));
+            stock.setText(p.optString("stock"));
         }
 
         new AlertDialog.Builder(this)
@@ -1227,11 +1270,13 @@ public class MainActivity extends Activity {
             .setPositiveButton("সংরক্ষণ", (d, w) -> {
                 String n = name.getText().toString().trim();
                 String pr = price.getText().toString().trim();
+                String st = stock.getText().toString().trim();
                 if (!n.isEmpty()) {
                     try {
                         JSONObject p = index < 0 ? new JSONObject() : arr.getJSONObject(index);
                         p.put("name", n);
                         p.put("price", pr);
+                        p.put("stock", st.isEmpty() ? "0" : st);
                         if (index < 0) arr.put(p);
                         saveData();
                         showProducts(selectedCustomer);
