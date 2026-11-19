@@ -112,7 +112,8 @@ public class MainActivity extends Activity {
         b.setPadding(dp(14), dp(11), dp(14), dp(11));
         b.setBackground(shape(bg, 0, radius));
         b.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(55, 20, 80, 120)), null, shape(Color.WHITE, 0, radius)));
-        b.setElevation(dp(3));
+        b.setElevation(dp(2));
+        b.setLetterSpacing(0.015f);
         b.setClickable(true);
         b.setFocusable(true);
         return b;
@@ -122,9 +123,9 @@ public class MainActivity extends Activity {
         TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
         GradientDrawable premium = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(10, 25, 47), Color.rgb(22, 48, 78), Color.rgb(177, 137, 68)});
-        premium.setCornerRadius(dp(16));
-        premium.setStroke(dp(1), Color.rgb(55, 119, 132));
+                new int[]{Color.rgb(7, 20, 39), Color.rgb(17, 39, 66), Color.rgb(49, 54, 61), Color.rgb(151, 111, 49)});
+        premium.setCornerRadius(dp(18));
+        premium.setStroke(dp(1), Color.rgb(204, 169, 105));
         button.setBackground(premium);
         button.setElevation(dp(6));
         button.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(75, 255, 255, 255)), null, shape(Color.WHITE, 0, 16)));
@@ -144,26 +145,30 @@ public class MainActivity extends Activity {
             e.setMaxLines(3);
             e.setGravity(Gravity.TOP | Gravity.START);
         }
-        e.setPadding(dp(14), dp(11), dp(14), dp(11));
-        e.setBackground(shape(Color.WHITE, BORDER, 16));
-        e.setElevation(dp(1));
+        e.setPadding(dp(16), dp(12), dp(16), dp(12));
+        e.setBackground(shape(Color.WHITE, BORDER, 17));
+        e.setElevation(dp(2));
         return e;
     }
 
     private void base(String title, String subtitle) {
         root = column();
-        root.setBackgroundColor(darkMode ? Color.rgb(11, 19, 32) : Color.rgb(244, 241, 234));
-        root.setPadding(dp(16), dp(18), dp(16), dp(14));
+        GradientDrawable pageBg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                darkMode ? new int[]{Color.rgb(8, 17, 31), Color.rgb(18, 30, 46), Color.rgb(25, 31, 40)}
+                         : new int[]{Color.rgb(246, 244, 239), Color.rgb(239, 235, 226), Color.rgb(248, 246, 241)});
+        root.setBackground(pageBg);
+        root.setPadding(dp(15), dp(15), dp(15), dp(9));
         setContentView(root);
         getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(10, 23, 43));
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 244, 238));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(16), dp(17), dp(13), dp(17));
+        brand.setPadding(dp(16), dp(16), dp(13), dp(16));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(6, 18, 36), Color.rgb(16, 39, 68), Color.rgb(111, 83, 43)});
-        banner.setCornerRadius(dp(22));
+                new int[]{Color.rgb(5, 16, 32), Color.rgb(12, 34, 61), Color.rgb(31, 43, 55), Color.rgb(111, 79, 37)});
+        banner.setCornerRadius(dp(24));
+        banner.setStroke(dp(1), Color.rgb(180, 143, 79));
         brand.setBackground(banner);
         brand.setElevation(dp(8));
         ImageView mark = new ImageView(this);
@@ -177,7 +182,8 @@ public class MainActivity extends Activity {
 
         LinearLayout titles = column();
         titles.setPadding(dp(10), 0, 0, 0);
-        TextView heading = label(title, 20, true, Color.WHITE);
+        TextView heading = label(title, 21, true, Color.WHITE);
+        heading.setLetterSpacing(0.012f);
         heading.setSingleLine(true);
         heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(heading);
@@ -186,9 +192,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("25.2", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("50.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৫.২");
+        version.setContentDescription("অ্যাপ সংস্করণ ৫০.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(202, 164, 91), 20));
@@ -212,8 +218,8 @@ public class MainActivity extends Activity {
         search.setElevation(dp(2));
         search.setTextColor(darkMode ? Color.rgb(242, 235, 220) : Color.rgb(20, 35, 55));
         search.setHintTextColor(darkMode ? Color.rgb(164, 174, 188) : Color.rgb(125, 125, 119));
-        search.setBackground(shape(darkMode ? Color.rgb(28, 42, 60) : Color.rgb(255, 254, 250),
-                darkMode ? Color.rgb(78, 91, 108) : Color.rgb(211, 195, 164), 17));
+        search.setBackground(shape(darkMode ? Color.rgb(25, 39, 57) : Color.rgb(255, 254, 250),
+                darkMode ? Color.rgb(184, 145, 79) : Color.rgb(204, 177, 123), 18));
         search.setSelectAllOnFocus(false);
         LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, dp(52));
         sp.topMargin = dp(15);
@@ -225,6 +231,50 @@ public class MainActivity extends Activity {
         listArea = column();
         scroll.addView(listArea);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        addPremiumBottomNav(title);
+    }
+
+    // Navigation reuses existing screens only; it does not add new business features.
+    private void addPremiumBottomNav(String screenTitle) {
+        LinearLayout nav = row();
+        nav.setGravity(Gravity.CENTER);
+        nav.setPadding(dp(7), dp(7), dp(7), dp(7));
+        GradientDrawable navBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+                darkMode ? new int[]{Color.rgb(10, 22, 39), Color.rgb(23, 37, 54)}
+                         : new int[]{Color.rgb(12, 29, 51), Color.rgb(25, 43, 63)});
+        navBg.setCornerRadius(dp(21));
+        navBg.setStroke(dp(1), Color.rgb(170, 132, 67));
+        nav.setBackground(navBg);
+        nav.setElevation(dp(8));
+        TextView home = navItem("⌂", "হোম", screenTitle.equals("আমার কাস্টমার"));
+        TextView reports = navItem("▤", "রিপোর্ট", screenTitle.contains("রিপোর্ট"));
+        TextView expensesNav = navItem("▣", "খরচ", screenTitle.contains("খরচ"));
+        nav.addView(home, new LinearLayout.LayoutParams(0, dp(48), 1));
+        nav.addView(reports, new LinearLayout.LayoutParams(0, dp(48), 1));
+        nav.addView(expensesNav, new LinearLayout.LayoutParams(0, dp(48), 1));
+        LinearLayout.LayoutParams navParams = new LinearLayout.LayoutParams(-1, dp(62));
+        navParams.topMargin = dp(9);
+        navParams.bottomMargin = dp(3);
+        root.addView(nav, navParams);
+        home.setOnClickListener(v -> showCustomers());
+        reports.setOnClickListener(v -> showBusinessReport("month"));
+        expensesNav.setOnClickListener(v -> showExpenses(""));
+    }
+
+    private TextView navItem(String symbol, String caption, boolean active) {
+        TextView item = label(symbol + "\\n" + caption, 12, true,
+                active ? Color.rgb(255, 220, 151) : Color.rgb(211, 218, 228));
+        item.setGravity(Gravity.CENTER);
+        item.setLineSpacing(dp(1), 1f);
+        if (active) {
+            GradientDrawable selected = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{Color.rgb(48, 54, 58), Color.rgb(35, 44, 55)});
+            selected.setCornerRadius(dp(15));
+            selected.setStroke(dp(1), Color.rgb(199, 158, 85));
+            item.setBackground(selected);
+        }
+        item.setContentDescription(caption);
+        return item;
     }
 
     private void showCustomers() {
@@ -251,7 +301,8 @@ public class MainActivity extends Activity {
         dashboard.setPadding(dp(10), dp(15), dp(10), dp(15));
         dashboard.setBackground(shape(darkMode ? Color.rgb(27, 40, 58) : Color.rgb(255, 254, 250),
                 darkMode ? Color.rgb(76, 83, 91) : Color.rgb(215, 198, 164), 21));
-        dashboard.setElevation(dp(4));
+        dashboard.setElevation(dp(6));
+        dashboard.setClipToOutline(true);
         dashboard.addView(statTile("মোট কাস্টমার", String.valueOf(customers.size()), "♙", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
         View statDivider = new View(this);
@@ -283,7 +334,7 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(17), dp(17), dp(16), dp(15));
+            card.setPadding(dp(18), dp(18), dp(17), dp(16));
             card.setBackground(shape(darkMode ? Color.rgb(25, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(68, 82, 101) : Color.rgb(218, 202, 171), 22));
             card.setElevation(dp(5));
@@ -430,8 +481,8 @@ public class MainActivity extends Activity {
         LinearLayout panel = column();
         panel.setGravity(Gravity.CENTER);
         panel.setPadding(dp(20), dp(25), dp(20), dp(25));
-        panel.setBackground(shape(Color.WHITE, Color.rgb(222, 229, 239), 22));
-        panel.setElevation(dp(3));
+        panel.setBackground(shape(Color.WHITE, Color.rgb(211, 190, 148), 24));
+        panel.setElevation(dp(5));
 
         TextView icon = label(symbol, 30, true, Color.rgb(15, 111, 119));
         icon.setGravity(Gravity.CENTER);
@@ -459,12 +510,13 @@ public class MainActivity extends Activity {
     private LinearLayout statTile(String heading, String value, String symbol, int accent) {
         LinearLayout tile = column();
         tile.setGravity(Gravity.CENTER);
+        tile.setPadding(dp(3), dp(3), dp(3), dp(3));
         TextView icon = label(symbol, 18, true, accent);
         icon.setGravity(Gravity.CENTER);
-        icon.setBackground(shape(Color.rgb(245, 239, 226), Color.rgb(231, 220, 198), 12));
+        icon.setBackground(shape(darkMode ? Color.rgb(58, 52, 42) : Color.rgb(248, 241, 225), Color.rgb(202, 169, 105), 13));
         icon.setElevation(dp(1));
         tile.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(32)));
-        TextView number = label(value, 21, true, INK);
+        TextView number = label(value, 20, true, INK);
         number.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, -2);
         np.topMargin = dp(5);
@@ -802,8 +854,8 @@ public class MainActivity extends Activity {
 
         LinearLayout metrics = column();
         metrics.setPadding(dp(14), dp(14), dp(14), dp(14));
-        metrics.setBackground(shape(Color.WHITE, Color.rgb(218, 228, 237), 20));
-        metrics.setElevation(dp(4));
+        metrics.setBackground(shape(Color.WHITE, Color.rgb(205, 178, 122), 22));
+        metrics.setElevation(dp(6));
         metrics.addView(statTile("মোট বিক্রি", "৳ " + formatMoney(periodTotal("sale", period)), "↗", BLUE));
         View divider = new View(this);
         divider.setBackgroundColor(BORDER);
@@ -1074,8 +1126,8 @@ public class MainActivity extends Activity {
 
         LinearLayout summary = row();
         summary.setPadding(dp(13), dp(12), dp(13), dp(12));
-        summary.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(224, 215, 194), 19));
-        summary.setElevation(dp(4));
+        summary.setBackground(shape(Color.rgb(255, 255, 255), Color.rgb(205, 178, 122), 21));
+        summary.setElevation(dp(5));
         JSONArray currentProducts = c.optJSONArray("products");
         int productTotal = currentProducts == null ? 0 : currentProducts.length();
         summary.addView(statTile("মোট পণ্য", String.valueOf(productTotal), "▦", BLUE),
@@ -1155,8 +1207,9 @@ public class MainActivity extends Activity {
 
             LinearLayout card = row();
             card.setPadding(dp(16), dp(15), dp(12), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(225, 215, 192), 21));
-            card.setElevation(dp(7));
+            card.setBackground(shape(darkMode ? Color.rgb(24, 38, 56) : Color.rgb(255, 254, 250),
+                    darkMode ? Color.rgb(91, 102, 116) : Color.rgb(213, 192, 151), 21));
+            card.setElevation(dp(6));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
             card.setAlpha(0f);
             card.setTranslationY(dp(10));
