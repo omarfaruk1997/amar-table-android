@@ -35,13 +35,13 @@ public class MainActivity extends Activity {
     private static final int REQUEST_REPORT_EXPORT = 7103;
     private String pendingReportPeriod = "month";
 
-    private static final int BG = Color.rgb(242, 246, 250);
-    private static final int INK = Color.rgb(20, 32, 51);
-    private static final int MUTED = Color.rgb(112, 125, 143);
-    private static final int BLUE = Color.rgb(27,  70, 132);
-    private static final int PALE = Color.rgb(239, 243, 249);
-    private static final int TEAL = Color.rgb(8, 137, 126);
-    private static final int BORDER = Color.rgb(229, 234, 242);
+    private static final int BG = Color.rgb(246, 244, 238);
+    private static final int INK = Color.rgb(13, 27, 48);
+    private static final int MUTED = Color.rgb(126, 126, 122);
+    private static final int BLUE = Color.rgb(19, 39, 67);
+    private static final int PALE = Color.rgb(244, 239, 226);
+    private static final int TEAL = Color.rgb(170, 128, 58);
+    private static final int BORDER = Color.rgb(229, 220, 199);
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -56,9 +56,9 @@ public class MainActivity extends Activity {
 
     private int themedSurface(int color) {
         if (!darkMode) return color;
-        if (color == Color.WHITE || color == Color.rgb(246, 247, 250)) return Color.rgb(27, 39, 56);
+        if (color == Color.WHITE || color == Color.rgb(246, 244, 238)) return Color.rgb(27, 39, 56);
         if (color == Color.rgb(239, 243, 249) || color == Color.rgb(239, 245, 255)
-                || color == Color.rgb(232, 242, 255) || color == Color.rgb(229, 234, 242)
+                || color == Color.rgb(245, 239, 226) || color == Color.rgb(229, 234, 242)
                 || color == Color.rgb(228, 232, 239)) return Color.rgb(37, 51, 70);
         return color;
     }
@@ -121,7 +121,7 @@ public class MainActivity extends Activity {
         TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
         GradientDrawable premium = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(10, 43, 78), Color.rgb(15, 111, 119), Color.rgb(126, 91, 45)});
+                new int[]{Color.rgb(10, 25, 47), Color.rgb(22, 48, 78), Color.rgb(177, 137, 68)});
         premium.setCornerRadius(dp(16));
         premium.setStroke(dp(1), Color.rgb(55, 119, 132));
         button.setBackground(premium);
@@ -154,21 +154,21 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(darkMode ? Color.rgb(15, 23, 36) : BG);
         root.setPadding(dp(16), dp(16), dp(16), dp(14));
         setContentView(root);
-        getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(15, 29, 52));
-        getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
+        getWindow().setStatusBarColor(darkMode ? Color.rgb(9, 15, 25) : Color.rgb(10, 23, 43));
+        getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 244, 238));
 
         LinearLayout brand = row();
         brand.setPadding(dp(16), dp(18), dp(13), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(5, 19, 43), Color.rgb(7, 91, 105), Color.rgb(157, 111, 48)});
+                new int[]{Color.rgb(7, 20, 39), Color.rgb(19, 43, 72), Color.rgb(156, 119, 58)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(12));
         ImageView mark = new ImageView(this);
         mark.setImageResource(R.drawable.ic_brand_mark);
         mark.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        mark.setBackground(shape(Color.rgb(7, 26, 53), Color.rgb(224, 188, 115), 17));
+        mark.setBackground(shape(Color.rgb(7, 26, 53), Color.rgb(218, 180, 104), 17));
         mark.setPadding(dp(3), dp(3), dp(3), dp(3));
         mark.setElevation(dp(5));
         mark.setContentDescription("আমার কাস্টমার নতুন ব্র্যান্ড লোগো");
@@ -180,22 +180,22 @@ public class MainActivity extends Activity {
         heading.setSingleLine(true);
         heading.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(heading);
-        TextView sub = label(subtitle, 11, false, Color.rgb(230, 220, 201));
+        TextView sub = label(subtitle, 11, false, Color.rgb(239, 220, 177));
         sub.setSingleLine(true);
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("25.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("25.1", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ২৫.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৫.১");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
+        version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(202, 164, 91), 20));
         brand.addView(version, new LinearLayout.LayoutParams(-2, dp(34)));
         TextView theme = label(darkMode ? "☀" : "☾", 20, true, Color.rgb(255, 226, 163));
         theme.setGravity(Gravity.CENTER);
         theme.setContentDescription("থিম পরিবর্তন");
-        theme.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(166, 132, 73), 18));
+        theme.setBackground(shape(Color.rgb(61, 75, 94), Color.rgb(202, 164, 91), 18));
         LinearLayout.LayoutParams themeParams = new LinearLayout.LayoutParams(dp(38), dp(38));
         themeParams.leftMargin = dp(8);
         brand.addView(theme, themeParams);
@@ -279,12 +279,12 @@ public class MainActivity extends Activity {
 
             LinearLayout card = column();
             card.setPadding(dp(17), dp(16), dp(16), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
+            card.setBackground(shape(Color.WHITE, Color.rgb(225, 215, 192), 22));
             card.setElevation(dp(7));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
-                    new int[]{Color.rgb(8, 67, 112), Color.rgb(12, 151, 139), Color.rgb(210, 158, 75)});
+                    new int[]{Color.rgb(17, 39, 67), Color.rgb(95, 77, 47), Color.rgb(207, 170, 101)});
             accentGradient.setCornerRadius(dp(3));
             accentLine.setBackground(accentGradient);
             LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(-1, dp(3));
@@ -298,7 +298,7 @@ public class MainActivity extends Activity {
             LinearLayout top = row();
             TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true, BLUE);
             avatar.setGravity(Gravity.CENTER);
-            avatar.setBackground(shape(Color.rgb(226, 239, 251), Color.rgb(209, 224, 241), 15));
+            avatar.setBackground(shape(Color.rgb(245, 237, 218), Color.rgb(224, 207, 169), 15));
             avatar.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             avatar.setElevation(dp(1));
             top.addView(avatar, new LinearLayout.LayoutParams(dp(42), dp(42)));
@@ -328,7 +328,7 @@ public class MainActivity extends Activity {
 
             LinearLayout finance = row();
             finance.setPadding(dp(10), dp(8), dp(10), dp(8));
-            finance.setBackground(shape(darkMode ? Color.rgb(31, 47, 62) : Color.rgb(241, 247, 250), darkMode ? Color.rgb(57, 76, 92) : Color.rgb(225, 235, 240), 12));
+            finance.setBackground(shape(darkMode ? Color.rgb(42, 48, 57) : Color.rgb(247, 244, 237), darkMode ? Color.rgb(83, 74, 56) : Color.rgb(231, 220, 198), 12));
             TextView dueInfo = label("বকেয়া ৳ " + formatMoney(customerDue(c)), 12, true,
                     customerDue(c) > 0 ? (darkMode ? Color.rgb(255, 174, 164) : Color.rgb(178, 63, 55)) : TEAL);
             finance.addView(dueInfo, new LinearLayout.LayoutParams(0, -2, 1));
@@ -342,9 +342,9 @@ public class MainActivity extends Activity {
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
             actions.setPadding(0, dp(8), 0, dp(2));
-            TextView edit = action("✎", Color.rgb(232, 242, 255), Color.rgb(25, 95, 210), 13);
+            TextView edit = action("✎", Color.rgb(245, 239, 226), Color.rgb(23, 43, 70), 13);
             TextView delete = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
-            TextView call = action("☎", Color.rgb(229, 248, 244), Color.rgb(13, 148, 110), 13);
+            TextView call = action("☎", Color.rgb(244, 239, 226), Color.rgb(153, 112, 48), 13);
             edit.setTextSize(25);
             delete.setTextSize(21);
             call.setTextSize(23);
@@ -388,23 +388,23 @@ public class MainActivity extends Activity {
 
         TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট",
                 darkMode ? Color.rgb(27, 65, 66) : Color.rgb(226, 243, 239),
-                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(12, 112, 100), 15);
+                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(142, 103, 44), 15);
         LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(48));
         reportParams.bottomMargin = dp(9);
         homeActions.addView(reports, reportParams);
         reports.setOnClickListener(v -> showBusinessReport("month"));
 
         TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
-                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
-                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
+                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(249, 239, 225),
+                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(147, 93, 49), 15);
         LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
         expenseParams.bottomMargin = dp(8);
         homeActions.addView(expenseButton, expenseParams);
         expenseButton.setOnClickListener(v -> showExpenses(""));
 
         TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
-                darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
-                darkMode ? Color.rgb(255, 226, 163) : Color.rgb(112, 80, 29), 15);
+                darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 240, 224),
+                darkMode ? Color.rgb(255, 226, 163) : Color.rgb(121, 88, 39), 15);
         LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(-1, dp(48));
         backupParams.bottomMargin = dp(8);
         homeActions.addView(backup, backupParams);
@@ -450,7 +450,7 @@ public class MainActivity extends Activity {
         tile.setGravity(Gravity.CENTER);
         TextView icon = label(symbol, 18, true, accent);
         icon.setGravity(Gravity.CENTER);
-        icon.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(222, 232, 244), 12));
+        icon.setBackground(shape(Color.rgb(245, 239, 226), Color.rgb(231, 220, 198), 12));
         icon.setElevation(dp(1));
         tile.addView(icon, new LinearLayout.LayoutParams(dp(34), dp(32)));
         TextView number = label(value, 21, true, INK);
@@ -643,7 +643,7 @@ public class MainActivity extends Activity {
         LinearLayout totals = row();
         totals.setPadding(dp(12), dp(13), dp(12), dp(13));
         totals.setBackground(shape(Color.WHITE, BORDER, 17));
-        totals.addView(statTile("সর্বমোট খরচ", "৳ " + formatMoney(periodExpenseTotal("all")), "−", Color.rgb(164, 72, 49)),
+        totals.addView(statTile("সর্বমোট খরচ", "৳ " + formatMoney(periodExpenseTotal("all")), "−", Color.rgb(147, 93, 49)),
                 new LinearLayout.LayoutParams(0, -2, 1));
         totals.addView(statTile("এই মাসে", "৳ " + formatMoney(periodExpenseTotal("month")), "▣", BLUE),
                 new LinearLayout.LayoutParams(0, -2, 1));
@@ -669,7 +669,7 @@ public class MainActivity extends Activity {
             LinearLayout top = row();
             top.addView(label(title, 15, true, INK), new LinearLayout.LayoutParams(0, -2, 1));
             top.addView(label("৳ " + formatMoney(parseMoney(item.optString("amount"))), 15, true,
-                    darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49)));
+                    darkMode ? Color.rgb(255, 190, 170) : Color.rgb(147, 93, 49)));
             card.addView(top);
             TextView detail = label(category + "  •  " + date, 12, false, MUTED);
             LinearLayout.LayoutParams detailParams = new LinearLayout.LayoutParams(-1, -2);
@@ -677,7 +677,7 @@ public class MainActivity extends Activity {
             card.addView(detail, detailParams);
             LinearLayout actions = row();
             actions.setGravity(Gravity.RIGHT);
-            TextView edit = action("✎ সম্পাদনা", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255), BLUE, 11);
+            TextView edit = action("✎ সম্পাদনা", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(245, 239, 226), BLUE, 11);
             TextView remove = action("মুছুন", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 11);
             LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(-2, dp(38));
             actionParams.setMargins(dp(5), dp(8), 0, 0);
@@ -810,7 +810,7 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams expenseDividerParams = new LinearLayout.LayoutParams(-1, dp(1));
         expenseDividerParams.setMargins(dp(8), dp(10), dp(8), dp(10));
         metrics.addView(expenseDivider, expenseDividerParams);
-        metrics.addView(statTile("মোট খরচ", "৳ " + formatMoney(periodExpenseTotal(period)), "−", Color.rgb(164, 72, 49)));
+        metrics.addView(statTile("মোট খরচ", "৳ " + formatMoney(periodExpenseTotal(period)), "−", Color.rgb(147, 93, 49)));
         metrics.addView(statTile("জমা থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("payment", period) - periodExpenseTotal(period)), "=", TEAL));
         LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
         metricParams.topMargin = dp(12);
@@ -1079,7 +1079,7 @@ public class MainActivity extends Activity {
         root.addView(summary, 4, summaryParams);
 
         TextView shareReport = action("↗   কাস্টমার রিপোর্ট শেয়ার করুন",
-                darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
+                darkMode ? Color.rgb(37, 51, 70) : Color.rgb(245, 239, 226),
                 darkMode ? Color.rgb(186, 216, 255) : Color.rgb(31, 75, 145), 13);
         LinearLayout.LayoutParams shareParams = new LinearLayout.LayoutParams(-1, dp(45));
         shareParams.bottomMargin = dp(12);
@@ -1144,7 +1144,7 @@ public class MainActivity extends Activity {
 
             LinearLayout card = row();
             card.setPadding(dp(16), dp(15), dp(12), dp(15));
-            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 21));
+            card.setBackground(shape(Color.WHITE, Color.rgb(225, 215, 192), 21));
             card.setElevation(dp(7));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
             card.setAlpha(0f);
@@ -1152,23 +1152,23 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(240).start();
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
-            productMark.setBackground(shape(Color.rgb(232, 241, 252), Color.rgb(196, 220, 235), 14));
+            productMark.setBackground(shape(Color.rgb(245, 239, 226), Color.rgb(196, 220, 235), 14));
             productMark.setElevation(dp(2));
             LinearLayout.LayoutParams productMarkParams = new LinearLayout.LayoutParams(dp(42), dp(44));
             productMarkParams.rightMargin = dp(11);
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));
+            TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(145, 105, 40));
             priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));
-            priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));
+            priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(249, 243, 230), Color.rgb(224, 204, 164), 10));
             priceLabel.setGravity(Gravity.CENTER_VERTICAL);
             LinearLayout.LayoutParams priceParams = new LinearLayout.LayoutParams(-1, -2);
             priceParams.topMargin = dp(5);
             info.addView(priceLabel, priceParams);
             card.addView(info, new LinearLayout.LayoutParams(0, -2, 1));
 
-            TextView edit = action("✎", Color.rgb(232, 242, 255), Color.rgb(25, 95, 210), 13);
+            TextView edit = action("✎", Color.rgb(245, 239, 226), Color.rgb(23, 43, 70), 13);
             TextView del = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
             edit.setTextSize(25);
             del.setTextSize(21);
