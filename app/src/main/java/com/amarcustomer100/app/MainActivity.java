@@ -25,6 +25,7 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private final ArrayList<JSONObject> customers = new ArrayList<>();
+    private JSONArray expenses = new JSONArray();
     private LinearLayout root, listArea;
     private EditText search;
     private int selectedCustomer = -1;
@@ -252,6 +253,14 @@ public class MainActivity extends Activity {
         backupParams.bottomMargin = dp(8);
         homeActions.addView(backup, backupParams);
         backup.setOnClickListener(v -> showBackupOptions());
+
+        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
+                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
+                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
+        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
+        expenseParams.bottomMargin = dp(8);
+        homeActions.addView(expenseButton, expenseParams);
+        expenseButton.setOnClickListener(v -> showExpenses(""));
 
         renderCustomers("");
         search.addTextChangedListener(watcher(s -> renderCustomers(s)));
@@ -591,6 +600,157 @@ public class MainActivity extends Activity {
         return total;
     }
 
+    private double periodExpenseTotal(String period) {
+        double total = 0;
+        for (int i = 0; i < expenses.length(); i++) {
+            JSONObject item = expenses.optJSONObject(i);
+            if (item != null && inReportPeriod(item.optString("date"), period))
+                total += parseMoney(item.optString("amount"));
+        }
+        return total;
+    }
+
+    private int periodExpenseCount(String period) {
+        int count = 0;
+        for (int i = 0; i < expenses.length(); i++) {
+            JSONObject item = expenses.optJSONObject(i);
+            if (item != null && inReportPeriod(item.optString("date"), period)) count++;
+        }
+        return count;
+    }
+
+    private void saveExpenses() {
+        getSharedPreferences("amar_customer", MODE_PRIVATE).edit().putString("expenses", expenses.toString()).apply();
+    }
+
+    private void showExpenses(String filter) {
+        selectedCustomer = -1;
+        base("দৈনিক খরচের হিসাব", "ব্যবসার খরচ লিখুন ও নিয়ন্ত্রণ করুন");
+        TextView add = primaryAction("＋   নতুন খরচ যোগ করুন");
+        LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(-1, dp(50));
+        addParams.topMargin = dp(8);
+        addParams.bottomMargin = dp(10);
+        root.addView(add, 2, addParams);
+        add.setOnClickListener(v -> expenseDialog(-1));
+
+        TextView back = action("←   হোমে ফিরুন", Color.WHITE, INK, 12);
+        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(40));
+        backParams.bottomMargin = dp(10);
+        root.addView(back, 3, backParams);
+        back.setOnClickListener(v -> showCustomers());
+
+        LinearLayout totals = row();
+        totals.setPadding(dp(12), dp(13), dp(12), dp(13));
+        totals.setBackground(shape(Color.WHITE, BORDER, 17));
+        totals.addView(statTile("সর্বমোট খরচ", "৳ " + formatMoney(periodExpenseTotal("all")), "−", Color.rgb(164, 72, 49)),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        totals.addView(statTile("এই মাসে", "৳ " + formatMoney(periodExpenseTotal("month")), "▣", BLUE),
+                new LinearLayout.LayoutParams(0, -2, 1));
+        LinearLayout.LayoutParams totalParams = new LinearLayout.LayoutParams(-1, -2);
+        totalParams.bottomMargin = dp(12);
+        root.addView(totals, totalParams);
+
+        String q = filter == null ? "" : filter.toLowerCase(Locale.ROOT).trim();
+        listArea.removeAllViews();
+        listArea.addView(label("খরচের তালিকা  ·  " + expenses.length() + "টি", 16, true, INK));
+        for (int i = expenses.length() - 1; i >= 0; i--) {
+            JSONObject item = expenses.optJSONObject(i);
+            if (item == null) continue;
+            final int index = i;
+            String title = item.optString("title");
+            String category = item.optString("category");
+            String date = item.optString("date");
+            if (!(title + " " + category + " " + date).toLowerCase(Locale.ROOT).contains(q)) continue;
+            LinearLayout card = column();
+            card.setPadding(dp(14), dp(13), dp(14), dp(12));
+            card.setBackground(shape(Color.WHITE, BORDER, 17));
+            card.setElevation(dp(3));
+            LinearLayout top = row();
+            top.addView(label(title, 15, true, INK), new LinearLayout.LayoutParams(0, -2, 1));
+            top.addView(label("৳ " + formatMoney(parseMoney(item.optString("amount"))), 15, true,
+                    darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49)));
+            card.addView(top);
+            TextView detail = label(category + "  •  " + date, 12, false, MUTED);
+            LinearLayout.LayoutParams detailParams = new LinearLayout.LayoutParams(-1, -2);
+            detailParams.topMargin = dp(5);
+            card.addView(detail, detailParams);
+            LinearLayout actions = row();
+            actions.setGravity(Gravity.RIGHT);
+            TextView edit = action("✎ সম্পাদনা", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255), BLUE, 11);
+            TextView remove = action("মুছুন", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 11);
+            LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(-2, dp(38));
+            actionParams.setMargins(dp(5), dp(8), 0, 0);
+            actions.addView(edit, actionParams);
+            actions.addView(remove, actionParams);
+            card.addView(actions);
+            edit.setOnClickListener(v -> expenseDialog(index));
+            remove.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setMessage("এই খরচের তথ্য মুছে ফেলবেন?")
+                .setPositiveButton("মুছুন", (d, w) -> {
+                    expenses.remove(index);
+                    saveExpenses();
+                    showExpenses("");
+                }).setNegativeButton("বাতিল", null).show());
+            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
+            cardParams.bottomMargin = dp(9);
+            listArea.addView(card, cardParams);
+        }
+        if (listArea.getChildCount() == 1) {
+            listArea.addView(emptyState("▣", "এখনও কোনো খরচ যোগ করা হয়নি",
+                    "দোকান ভাড়া, যাতায়াত, কর্মচারী বা অন্যান্য খরচ লিখে রাখুন।"));
+        }
+        search.setHint("খরচের নাম, খাত বা তারিখ লিখে খুঁজুন...");
+        search.setText(filter == null ? "" : filter);
+        search.addTextChangedListener(watcher(this::showExpenses));
+    }
+
+    private void expenseDialog(int index) {
+        LinearLayout form = column();
+        form.setPadding(dp(4), dp(5), dp(4), 0);
+        EditText title = field("খরচের নাম / বিবরণ", android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
+        EditText amount = field("টাকার পরিমাণ", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
+        Spinner category = new Spinner(this);
+        String[] categories = {"দোকান ভাড়া", "যাতায়াত", "কর্মচারী বেতন", "বিদ্যুৎ / গ্যাস", "মালামাল কেনা", "ইন্টারনেট / ফোন", "অন্যান্য"};
+        category.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, categories));
+        form.addView(title);
+        addGap(form, 9);
+        form.addView(amount);
+        addGap(form, 7);
+        form.addView(category, new LinearLayout.LayoutParams(-1, dp(48)));
+        if (index >= 0 && index < expenses.length()) {
+            JSONObject item = expenses.optJSONObject(index);
+            if (item != null) {
+                title.setText(item.optString("title"));
+                amount.setText(item.optString("amount"));
+                for (int i = 0; i < categories.length; i++)
+                    if (categories[i].equals(item.optString("category"))) category.setSelection(i);
+            }
+        }
+        new AlertDialog.Builder(this).setTitle(index < 0 ? "নতুন ব্যবসায়িক খরচ" : "খরচ পরিবর্তন")
+            .setView(form)
+            .setPositiveButton("সংরক্ষণ", (d, w) -> {
+                String t = title.getText().toString().trim();
+                String a = amount.getText().toString().trim();
+                if (t.isEmpty() || parseMoney(a) <= 0) {
+                    Toast.makeText(this, "খরচের বিবরণ ও সঠিক টাকা লিখুন।", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    JSONObject item = index < 0 ? new JSONObject() : expenses.getJSONObject(index);
+                    item.put("title", t);
+                    item.put("amount", a);
+                    item.put("category", category.getSelectedItem().toString());
+                    if (index < 0) item.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(new java.util.Date()));
+                    if (index < 0) expenses.put(item);
+                    saveExpenses();
+                    showExpenses("");
+                    Toast.makeText(this, "খরচের হিসাব সংরক্ষণ হয়েছে।", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "খরচ সংরক্ষণ করা যায়নি।", Toast.LENGTH_SHORT).show();
+                }
+            }).setNegativeButton("বাতিল", null).show();
+    }
+
     private int periodCount(String period) {
         int count = 0;
         for (JSONObject customer : customers) {
@@ -644,6 +804,13 @@ public class MainActivity extends Activity {
         pair.addView(statTile("লেনদেন", String.valueOf(periodCount(period)), "≋", Color.rgb(157, 112, 43)),
                 new LinearLayout.LayoutParams(0, -2, 1));
         metrics.addView(pair);
+        View expenseDivider = new View(this);
+        expenseDivider.setBackgroundColor(BORDER);
+        LinearLayout.LayoutParams expenseDividerParams = new LinearLayout.LayoutParams(-1, dp(1));
+        expenseDividerParams.setMargins(dp(8), dp(10), dp(8), dp(10));
+        metrics.addView(expenseDivider, expenseDividerParams);
+        metrics.addView(statTile("মোট খরচ", "৳ " + formatMoney(periodExpenseTotal(period)), "−", Color.rgb(164, 72, 49)));
+        metrics.addView(statTile("জমা থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("payment", period) - periodExpenseTotal(period)), "=", TEAL));
         LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
         metricParams.topMargin = dp(12);
         metricParams.bottomMargin = dp(12);
@@ -662,7 +829,7 @@ public class MainActivity extends Activity {
         root.addView(export, 6, exportParams);
         export.setOnClickListener(v -> createReportCsv(period));
         listArea.addView(label("রিপোর্টের সময়সীমা: " + ("today".equals(period) ? "আজ" : "week".equals(period) ? "এই সপ্তাহ" : "month".equals(period) ? "এই মাস" : "সব সময়"), 14, true, INK));
-        listArea.addView(label("রিপোর্টে " + periodCount(period) + "টি বিক্রি ও জমার লেনদেন অন্তর্ভুক্ত হয়েছে।", 12, false, MUTED));
+        listArea.addView(label("রিপোর্টে " + periodCount(period) + "টি বিক্রি ও জমার লেনদেন এবং " + periodExpenseCount(period) + "টি খরচ অন্তর্ভুক্ত হয়েছে।", 12, false, MUTED));
     }
 
     private String csvCell(String value) {
@@ -696,8 +863,19 @@ public class MainActivity extends Activity {
                        .append(csvCell(entry.optString("note"))).append("\r\n");
                 }
             }
+            for (int i = 0; i < expenses.length(); i++) {
+                JSONObject expense = expenses.optJSONObject(i);
+                if (expense == null || !inReportPeriod(expense.optString("date"), period)) continue;
+                csv.append(csvCell("ব্যবসার খরচ")).append(',')
+                   .append(csvCell("খরচ - " + expense.optString("category"))).append(',')
+                   .append(csvCell(expense.optString("amount"))).append(',')
+                   .append(csvCell(expense.optString("date"))).append(',')
+                   .append(csvCell(expense.optString("title"))).append("\r\n");
+            }
             csv.append("\r\nসর্বমোট বিক্রি,").append(formatMoney(periodTotal("sale", period))).append("\r\n");
             csv.append("সর্বমোট জমা,").append(formatMoney(periodTotal("payment", period))).append("\r\n");
+            csv.append("সর্বমোট খরচ,").append(formatMoney(periodExpenseTotal(period))).append("\r\n");
+            csv.append("জমা থেকে খরচ বাদে,").append(formatMoney(periodTotal("payment", period) - periodExpenseTotal(period))).append("\r\n");
             csv.append("সর্বমোট বকেয়া,").append(formatMoney(sumAllDue())).append("\r\n");
             out.write(csv.toString().getBytes(StandardCharsets.UTF_8));
             out.flush();
@@ -1102,6 +1280,7 @@ public class MainActivity extends Activity {
                 JSONArray saved = new JSONArray();
                 for (JSONObject customer : customers) saved.put(customer);
                 backup.put("customers", saved);
+                backup.put("expenses", expenses);
                 try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                     if (out == null) throw new Exception("File unavailable");
                     out.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
@@ -1126,6 +1305,16 @@ public class MainActivity extends Activity {
             JSONObject backup = new JSONObject(content.toString());
             JSONArray incoming = backup.optJSONArray("customers");
             if (incoming == null) throw new Exception("Invalid backup");
+            JSONArray incomingExpenses = backup.optJSONArray("expenses");
+            JSONArray checkedExpenses = new JSONArray();
+            if (incomingExpenses != null) {
+                for (int i = 0; i < incomingExpenses.length(); i++) {
+                    JSONObject expense = incomingExpenses.optJSONObject(i);
+                    if (expense == null || parseMoney(expense.optString("amount")) <= 0)
+                        throw new Exception("Invalid expense");
+                    checkedExpenses.put(expense);
+                }
+            }
             ArrayList<JSONObject> checked = new ArrayList<>();
             for (int i = 0; i < incoming.length(); i++) {
                 JSONObject customer = incoming.optJSONObject(i);
@@ -1140,6 +1329,10 @@ public class MainActivity extends Activity {
                 .setPositiveButton("পুনরুদ্ধার", (d, w) -> {
                     customers.clear();
                     customers.addAll(checked);
+                    if (incomingExpenses != null) {
+                        expenses = checkedExpenses;
+                        saveExpenses();
+                    }
                     saveData();
                     showCustomers();
                     Toast.makeText(this, "ব্যাকআপের তথ্য সফলভাবে ফিরিয়ে আনা হয়েছে।", Toast.LENGTH_LONG).show();
@@ -1160,5 +1353,8 @@ public class MainActivity extends Activity {
             JSONArray a = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("data", "[]"));
             for (int i = 0; i < a.length(); i++) customers.add(a.getJSONObject(i));
         } catch (Exception ignored) {}
+        try {
+            expenses = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("expenses", "[]"));
+        } catch (Exception ignored) { expenses = new JSONArray(); }
     }
 }
