@@ -4,9 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -33,17 +30,9 @@ public class MainActivity extends Activity {
     private EditText search;
     private int selectedCustomer = -1;
     private boolean darkMode = false;
-    private int accentTheme = 0;
-    private static final int[] ACCENTS = {Color.rgb(15, 111, 119), Color.rgb(43, 91, 177), Color.rgb(132, 82, 155), Color.rgb(27, 132, 94), Color.rgb(190, 132, 42), Color.rgb(194, 76, 102), Color.rgb(54, 112, 145), Color.rgb(91, 103, 70)};
     private static final int REQUEST_BACKUP_EXPORT = 7101;
     private static final int REQUEST_BACKUP_IMPORT = 7102;
     private static final int REQUEST_REPORT_EXPORT = 7103;
-    private static final int REQUEST_INVOICE_PDF = 7104;
-    private static final int REQUEST_RECEIPT_PDF = 7105;
-    private JSONObject pendingInvoiceCustomer;
-    private JSONObject pendingInvoiceTransaction;
-    private JSONObject pendingReceiptCustomer;
-    private JSONObject pendingReceiptTransaction;
     private String pendingReportPeriod = "month";
 
     private static final int BG = Color.rgb(242, 246, 250);
@@ -57,10 +46,8 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         darkMode = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", false);
-        accentTheme = getPreferences(MODE_PRIVATE).getInt("accent_theme", 0);
         loadData();
         showCustomers();
-        if (!getPreferences(MODE_PRIVATE).getString("app_pin_hash", "").isEmpty()) promptPinLock();
     }
 
     private int dp(float v) {
@@ -134,7 +121,7 @@ public class MainActivity extends Activity {
         TextView button = action(caption, Color.rgb(18, 70, 91), Color.WHITE, 16);
         GradientDrawable premium = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(10, 43, 78), ACCENTS[accentTheme], Color.rgb(126, 91, 45)});
+                new int[]{Color.rgb(10, 43, 78), Color.rgb(15, 111, 119), Color.rgb(126, 91, 45)});
         premium.setCornerRadius(dp(16));
         premium.setStroke(dp(1), Color.rgb(55, 119, 132));
         button.setBackground(premium);
@@ -171,10 +158,10 @@ public class MainActivity extends Activity {
         getWindow().setNavigationBarColor(darkMode ? Color.rgb(15, 23, 36) : Color.rgb(246, 247, 250));
 
         LinearLayout brand = row();
-        brand.setPadding(dp(16), dp(17), dp(13), dp(17));
+        brand.setPadding(dp(16), dp(18), dp(13), dp(18));
         GradientDrawable banner = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[]{Color.rgb(7, 18, 43), Color.rgb(18, 43, 78), Color.rgb(164, 124, 58)});
+                new int[]{Color.rgb(5, 19, 43), Color.rgb(7, 91, 105), Color.rgb(157, 111, 48)});
         banner.setCornerRadius(dp(22));
         brand.setBackground(banner);
         brand.setElevation(dp(12));
@@ -198,9 +185,9 @@ public class MainActivity extends Activity {
         sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
         titles.addView(sub);
         brand.addView(titles, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView version = label("55.0", 12, true, Color.rgb(255, 226, 163));
+        TextView version = label("25.0", 12, true, Color.rgb(255, 226, 163));
         version.setGravity(Gravity.CENTER);
-        version.setContentDescription("অ্যাপ সংস্করণ ৫৫.০");
+        version.setContentDescription("অ্যাপ সংস্করণ ২৫.০");
         version.setPadding(dp(11), dp(7), dp(11), dp(7));
         version.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         version.setBackground(shape(Color.rgb(25, 48, 68), Color.rgb(190, 153, 91), 20));
@@ -234,70 +221,6 @@ public class MainActivity extends Activity {
         listArea = column();
         scroll.addView(listArea);
         root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
-
-        // Keep Backup & Restore as the final home action; show bottom navigation on inner screens.
-        if (!"আমার কাস্টমার".equals(title)) addPremiumBottomNavigation(title);
-    }
-
-    private void addPremiumBottomNavigation(String currentTitle) {
-        LinearLayout nav = row();
-        nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(6), dp(7), dp(6), dp(7));
-        GradientDrawable shell = new GradientDrawable();
-        shell.setColor(darkMode ? Color.rgb(8, 17, 32) : Color.rgb(12, 27, 51));
-        shell.setCornerRadius(dp(21));
-        shell.setStroke(dp(1), Color.rgb(202, 166, 98));
-        nav.setBackground(shell);
-        nav.setElevation(dp(10));
-        String[] icons = {"⌂", "▤", "◷", "✦"};
-        String[] labels = {"হোম", "অ্যানালিটিক্স", "বকেয়া", "টুলস"};
-        int selected = currentTitle.contains("অ্যানালিটিক্স") ? 1 : currentTitle.contains("রিমাইন্ডার") ? 2 : -1;
-        for (int i = 0; i < labels.length; i++) {
-            final int tab = i;
-            LinearLayout item = column();
-            item.setGravity(Gravity.CENTER);
-            item.setPadding(dp(3), dp(5), dp(3), dp(5));
-            boolean active = i == selected;
-            if (active) {
-                GradientDrawable activeBg = new GradientDrawable();
-                activeBg.setColor(Color.rgb(143, 105, 48));
-                activeBg.setCornerRadius(dp(15));
-                activeBg.setStroke(dp(1), Color.rgb(225, 190, 116));
-                item.setBackground(activeBg);
-            }
-            TextView icon = label(icons[i], 19, true, active ? Color.rgb(255, 231, 179) : Color.rgb(205, 184, 143));
-            icon.setGravity(Gravity.CENTER);
-            item.addView(icon);
-            TextView caption = label(labels[i], 10, true, active ? Color.WHITE : Color.rgb(218, 224, 234));
-            caption.setGravity(Gravity.CENTER);
-            item.addView(caption);
-            nav.addView(item, new LinearLayout.LayoutParams(0, dp(48), 1));
-            item.setClickable(true);
-            item.setFocusable(true);
-            item.setOnClickListener(v -> {
-                if (tab == 0) showCustomers();
-                else if (tab == 1) showAnalytics("month");
-                else if (tab == 2) showDueReminders();
-                else showPremiumToolsMenu();
-            });
-        }
-        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(-1, dp(62));
-        np.topMargin = dp(9);
-        np.bottomMargin = dp(2);
-        root.addView(nav, np);
-    }
-
-    private void showPremiumToolsMenu() {
-        String[] tools = {"দৈনিক খরচের হিসাব", "পণ্যের স্টক ব্যবস্থাপনা", "বিক্রয় রিপোর্ট", "থিম ও রঙ কাস্টমাইজ", "অ্যাপ PIN নিরাপত্তা", "দোকানের তথ্য ও ইনভয়েস সেটিংস", "তথ্য ব্যাকআপ ও পুনরুদ্ধার"};
-        new AlertDialog.Builder(this).setTitle("ব্যবসার প্রয়োজনীয় টুলস").setItems(tools, (dialog, which) -> {
-            if (which == 0) showExpenses("");
-            else if (which == 1) showStockManagement();
-            else if (which == 2) showBusinessReport("month");
-            else if (which == 3) showThemePicker();
-            else if (which == 4) managePinSecurity();
-            else if (which == 5) manageShopProfile();
-            else showBackupOptions();
-        }).setNegativeButton("বন্ধ", null).show();
     }
 
     private void showCustomers() {
@@ -339,12 +262,10 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams dashParams = new LinearLayout.LayoutParams(-1, -2);
         dashParams.bottomMargin = dp(14);
         listArea.addView(dashboard, dashParams);
-        addPremiumOverview();
-        addHomeInsights();
 
-        TextView section = label("আপনার কাস্টমার তালিকা", 17, true, INK);
+        TextView section = label("আপনার কাস্টমার তালিকা  ·  " + customers.size() + " জন", 16, true, INK);
         LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(-1, dp(36));
-        sectionParams.bottomMargin = dp(7);
+        sectionParams.bottomMargin = dp(5);
         listArea.addView(section, sectionParams);
         String q = filter.toLowerCase(Locale.ROOT).trim();
 
@@ -357,9 +278,9 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(19), dp(18), dp(18), dp(17));
-            card.setBackground(shape(Color.WHITE, Color.rgb(218, 190, 135), 24));
-            card.setElevation(dp(6));
+            card.setPadding(dp(17), dp(16), dp(16), dp(15));
+            card.setBackground(shape(Color.WHITE, Color.rgb(214, 225, 237), 22));
+            card.setElevation(dp(7));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -459,10 +380,6 @@ public class MainActivity extends Activity {
         // Place the requested home actions at the bottom of the customer list.
         LinearLayout homeActions = column();
         homeActions.setPadding(0, dp(16), 0, dp(8));
-        TextView shortcutsTitle = label("আপনার ব্যবসার স্মার্ট টুলস", 17, true, INK);
-        LinearLayout.LayoutParams shortcutsTitleParams = new LinearLayout.LayoutParams(-1, dp(34));
-        shortcutsTitleParams.bottomMargin = dp(7);
-        homeActions.addView(shortcutsTitle, shortcutsTitleParams);
         TextView add = primaryAction("＋   নতুন কাস্টমার যোগ করুন");
         LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1, dp(54));
         ap.bottomMargin = dp(10);
@@ -481,42 +398,9 @@ public class MainActivity extends Activity {
                 darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 238, 232),
                 darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
         LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
-        expenseParams.bottomMargin = dp(9);
+        expenseParams.bottomMargin = dp(8);
         homeActions.addView(expenseButton, expenseParams);
         expenseButton.setOnClickListener(v -> showExpenses(""));
-
-        TextView analytics = action("▥   স্মার্ট ব্যবসা অ্যানালিটিক্স", darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255), darkMode ? Color.rgb(186, 216, 255) : BLUE, 15);
-        LinearLayout.LayoutParams analyticsParams = new LinearLayout.LayoutParams(-1, dp(48));
-        analyticsParams.bottomMargin = dp(9);
-        homeActions.addView(analytics, analyticsParams);
-        analytics.setOnClickListener(v -> showAnalytics("month"));
-
-        TextView reminders = action("◷   বকেয়া ও পেমেন্ট রিমাইন্ডার", darkMode ? Color.rgb(57, 43, 43) : Color.rgb(255, 242, 232), darkMode ? Color.rgb(255, 190, 170) : Color.rgb(164, 72, 49), 15);
-        LinearLayout.LayoutParams reminderParams = new LinearLayout.LayoutParams(-1, dp(48));
-        reminderParams.bottomMargin = dp(9);
-        homeActions.addView(reminders, reminderParams);
-        reminders.setOnClickListener(v -> showDueReminders());
-
-        TextView themes = action("✦   থিম ও রঙ কাস্টমাইজ করুন", darkMode ? Color.rgb(48, 43, 65) : Color.rgb(243, 237, 252), darkMode ? Color.rgb(216, 190, 255) : Color.rgb(106, 72, 150), 15);
-        LinearLayout.LayoutParams themeMenuParams = new LinearLayout.LayoutParams(-1, dp(48));
-        themeMenuParams.bottomMargin = dp(9);
-        homeActions.addView(themes, themeMenuParams);
-        themes.setOnClickListener(v -> showThemePicker());
-
-        TextView security = action("▣   অ্যাপ PIN নিরাপত্তা", darkMode ? Color.rgb(34, 57, 75) : Color.rgb(231, 242, 251), darkMode ? Color.rgb(176, 218, 245) : BLUE, 15);
-        LinearLayout.LayoutParams securityParams = new LinearLayout.LayoutParams(-1, dp(48));
-        securityParams.bottomMargin = dp(9);
-        homeActions.addView(security, securityParams);
-        security.setOnClickListener(v -> managePinSecurity());
-
-        // Backup and restore must always remain the final home-screen action.
-        TextView stockButton = action("▦   পণ্যের স্টক ব্যবস্থাপনা",
-                darkMode ? Color.rgb(34, 57, 75) : Color.rgb(231, 242, 251),
-                darkMode ? Color.rgb(176, 218, 245) : Color.rgb(27, 70, 132), 15);
-        LinearLayout.LayoutParams stockParams = new LinearLayout.LayoutParams(-1, dp(48));
-        stockParams.bottomMargin = dp(9);
-        homeActions.addView(stockButton, stockParams);
-        stockButton.setOnClickListener(v -> showStockManagement());
 
         TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
                 darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 241, 229),
@@ -531,286 +415,7 @@ public class MainActivity extends Activity {
         listArea.addView(homeActions, homeActionsParams);
     }
 
-    private void addPremiumOverview() {
-        double sales = 0;
-        double due = 0;
-        for (JSONObject customer : customers) {
-            sales += sumTransactions(customer, "sale");
-            due += customerDue(customer);
-        }
-        LinearLayout hero = column();
-        hero.setPadding(dp(20), dp(19), dp(20), dp(18));
-        GradientDrawable gradient = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                darkMode
-                    ? new int[]{Color.rgb(15, 25, 48), ACCENTS[accentTheme], Color.rgb(9, 117, 123)}
-                    : new int[]{Color.rgb(5, 20, 48), ACCENTS[accentTheme], Color.rgb(9, 139, 133), Color.rgb(185, 132, 55)});
-        gradient.setCornerRadius(dp(26));
-        gradient.setStroke(dp(1), darkMode ? Color.rgb(67, 103, 116) : Color.rgb(183, 157, 111));
-        hero.setBackground(gradient);
-        hero.setElevation(dp(10));
-
-        LinearLayout heading = row();
-        TextView title = label("আপনার ব্যবসার ড্যাশবোর্ড", 16, true, Color.WHITE);
-        heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView badge = label("PREMIUM", 9, true, Color.rgb(255, 225, 164));
-        badge.setGravity(Gravity.CENTER);
-        badge.setPadding(dp(9), dp(5), dp(9), dp(5));
-        GradientDrawable badgeBg = new GradientDrawable();
-        badgeBg.setColor(Color.argb(45, 255, 255, 255));
-        badgeBg.setCornerRadius(dp(20));
-        badgeBg.setStroke(dp(1), Color.argb(100, 255, 225, 164));
-        badge.setBackground(badgeBg);
-        heading.addView(badge);
-        hero.addView(heading);
-
-        LinearLayout metrics = row();
-        metrics.setPadding(0, dp(13), 0, dp(2));
-        addHeroMetric(metrics, "মোট বিক্রি", "৳ " + formatMoney(sales));
-        View dividerOne = new View(this);
-        dividerOne.setBackgroundColor(Color.argb(95, 255, 255, 255));
-        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(dp(1), dp(42));
-        dividerParams.setMargins(dp(8), 0, dp(8), 0);
-        metrics.addView(dividerOne, dividerParams);
-        addHeroMetric(metrics, "মোট বকেয়া", "৳ " + formatMoney(due));
-        View dividerTwo = new View(this);
-        dividerTwo.setBackgroundColor(Color.argb(95, 255, 255, 255));
-        metrics.addView(dividerTwo, dividerParams);
-        addHeroMetric(metrics, "কম স্টক", String.valueOf(countLowStock()) + " টি");
-        hero.addView(metrics);
-        TextView hint = label("কাস্টমার • বিক্রি • বকেয়া • মজুত — সব এক জায়গায়", 11, false,
-                Color.rgb(226, 232, 228));
-        LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(-1, -2);
-        hintParams.topMargin = dp(9);
-        hero.addView(hint, hintParams);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = dp(15);
-        listArea.addView(hero, params);
-        hero.setAlpha(0f);
-        hero.setTranslationY(dp(8));
-        hero.animate().alpha(1f).translationY(0f).setDuration(320).start();
-    }
-
-    private void addHomeInsights() {
-        double sales = sumAllTransactions("sale");
-        double expenseTotal = 0;
-        for (int i=0;i<expenses.length();i++) { JSONObject e=expenses.optJSONObject(i); if(e!=null) expenseTotal+=parseMoney(e.optString("amount")); }
-        final double expenseTotalFinal = expenseTotal;
-        LinearLayout panel=column(); panel.setPadding(dp(16),dp(15),dp(16),dp(14));
-        panel.setBackground(shape(darkMode?Color.rgb(27,39,56):Color.WHITE,BORDER,22)); panel.setElevation(dp(5));
-        LinearLayout head=row(); head.addView(label("ব্যবসার এক নজরের সারাংশ",15,true,INK),new LinearLayout.LayoutParams(0,-2,1)); head.addView(label("LIVE",10,true,ACCENTS[accentTheme])); panel.addView(head);
-        panel.addView(label("বিক্রি বনাম খরচ",11,false,MUTED));
-        View chart=new View(this) {
-            private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);
-            @Override protected void onDraw(Canvas canvas) {
-                super.onDraw(canvas); float w=getWidth(),h=getHeight(),base=h-dp(8);
-                double max=Math.max(1,Math.max(sales,expenseTotalFinal));
-                float sh=(float)(sales/max)*(h-dp(24)), eh=(float)(expenseTotalFinal/max)*(h-dp(24));
-                p.setColor(ACCENTS[accentTheme]); canvas.drawRoundRect(dp(30),base-sh,dp(88),base,dp(9),dp(9),p);
-                p.setColor(Color.rgb(204,139,65)); canvas.drawRoundRect(w-dp(88),base-eh,w-dp(30),base,dp(9),dp(9),p);
-                p.setColor(themedText(MUTED)); p.setTextSize(dp(10)); canvas.drawText("বিক্রি",dp(35),h-dp(1),p); canvas.drawText("খরচ",w-dp(82),h-dp(1),p);
-            }
-        };
-        panel.addView(chart,new LinearLayout.LayoutParams(-1,dp(94)));
-        LinearLayout foot=row(); foot.addView(label("বিক্রি ৳ "+formatMoney(sales),11,true,ACCENTS[accentTheme]),new LinearLayout.LayoutParams(0,-2,1)); foot.addView(label("খরচ ৳ "+formatMoney(expenseTotal),11,true,Color.rgb(190,120,55))); panel.addView(foot);
-        TextView quick=action("✦   বিস্তারিত অ্যানালিটিক্স দেখুন",darkMode?Color.rgb(35,54,72):Color.rgb(235,244,247),darkMode?Color.rgb(210,229,244):BLUE,14);
-        LinearLayout.LayoutParams qp=new LinearLayout.LayoutParams(-1,dp(44)); qp.topMargin=dp(10); panel.addView(quick,qp); quick.setOnClickListener(v->showAnalytics("month"));
-        LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,-2); pp.bottomMargin=dp(14); listArea.addView(panel,pp);
-    }
-
-    private void addHeroMetric(LinearLayout parent, String caption, String value) {
-        LinearLayout metric = column();
-        TextView amount = label(value, 14, true, Color.WHITE);
-        amount.setMaxLines(1);
-        amount.setTextSize(13);
-        metric.addView(amount);
-        TextView metricLabel = label(caption, 10, false, Color.rgb(221, 230, 231));
-        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(-1, -2);
-        labelParams.topMargin = dp(5);
-        metric.addView(metricLabel, labelParams);
-        parent.addView(metric, new LinearLayout.LayoutParams(0, -2, 1));
-    }
-
-    private int countLowStock() {
-        int count = 0;
-        for (JSONObject customer : customers) {
-            JSONArray products = customer.optJSONArray("products");
-            if (products == null) continue;
-            for (int i = 0; i < products.length(); i++) {
-                JSONObject product = products.optJSONObject(i);
-                if (product != null && parseMoney(product.optString("stock", "0")) <= 3) count++;
-            }
-        }
-        return count;
-    }
-
-    private void showStockManagement() {
-        selectedCustomer = -1;
-        base("পণ্যের স্টক ব্যবস্থাপনা", "মজুত দেখুন, পরিমাণ সংশোধন ও কম স্টক শনাক্ত করুন");
-        search.setVisibility(View.GONE);
-        TextView back = action("←   হোমে ফিরুন", Color.WHITE, INK, 12);
-        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(-1, dp(42));
-        backParams.bottomMargin = dp(12);
-        root.addView(back, 2, backParams);
-        back.setOnClickListener(v -> showCustomers());
-
-        LinearLayout summary = row();
-        summary.setPadding(dp(12), dp(14), dp(12), dp(14));
-        summary.setBackground(shape(Color.WHITE, BORDER, 18));
-        int total = countAllProducts();
-        int low = countLowStock();
-        int totalUnits = 0;
-        double stockValue = 0;
-        for (JSONObject owner : customers) {
-            JSONArray items = owner.optJSONArray("products");
-            if (items == null) continue;
-            for (int ix = 0; ix < items.length(); ix++) {
-                JSONObject item = items.optJSONObject(ix);
-                if (item == null) continue;
-                int units = (int) parseMoney(item.optString("stock", "0"));
-                totalUnits += Math.max(0, units);
-                stockValue += Math.max(0, units) * Math.max(0, parseMoney(item.optString("price", "0")));
-            }
-        }
-        summary.addView(statTile("মোট পণ্য", String.valueOf(total), "▦", BLUE),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        summary.addView(statTile("মোট ইউনিট", String.valueOf(totalUnits), "↕", TEAL),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        summary.addView(statTile("মজুতের মূল্য", "৳" + formatMoney(stockValue), "৳", Color.rgb(157, 112, 43)),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        summary.addView(statTile("কম / শেষ", String.valueOf(low), "!", Color.rgb(190, 85, 55)),
-                new LinearLayout.LayoutParams(0, -2, 1));
-        LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(-1, -2);
-        summaryParams.bottomMargin = dp(12);
-        root.addView(summary, summaryParams);
-
-        listArea.removeAllViews();
-        listArea.addView(label("সব কাস্টমারের পণ্যের মজুত", 16, true, INK));
-        boolean found = false;
-        for (int ci = 0; ci < customers.size(); ci++) {
-            JSONObject customer = customers.get(ci);
-            JSONArray products = customer.optJSONArray("products");
-            if (products == null) continue;
-            for (int pi = 0; pi < products.length(); pi++) {
-                JSONObject product = products.optJSONObject(pi);
-                if (product == null) continue;
-                found = true;
-                String stock = product.optString("stock", "0");
-                boolean lowStock = parseMoney(stock) <= 3;
-                LinearLayout card = column();
-                card.setPadding(dp(14), dp(13), dp(14), dp(13));
-                card.setBackground(shape(Color.WHITE, BORDER, 17));
-                card.setElevation(dp(3));
-                LinearLayout top = row();
-                top.addView(label(product.optString("name"), 15, true, INK),
-                        new LinearLayout.LayoutParams(0, -2, 1));
-                top.addView(label("মজুত: " + stock + " টি", 14, true,
-                        lowStock ? Color.rgb(190, 75, 55) : TEAL));
-                card.addView(top);
-                TextView owner = label("কাস্টমার: " + customer.optString("name")
-                        + (lowStock ? "   •   স্টক কম" : ""), 12, false, MUTED);
-                LinearLayout.LayoutParams ownerParams = new LinearLayout.LayoutParams(-1, -2);
-                ownerParams.topMargin = dp(5);
-                card.addView(owner, ownerParams);
-                TextView adjust = action("＋   স্টক যোগ / পরিমাণ পরিবর্তন",
-                        darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
-                        darkMode ? Color.rgb(186, 216, 255) : BLUE, 12);
-                LinearLayout.LayoutParams adjustParams = new LinearLayout.LayoutParams(-1, dp(40));
-                adjustParams.topMargin = dp(9);
-                card.addView(adjust, adjustParams);
-                final int customerIndex = ci, productIndex = pi;
-                adjust.setOnClickListener(v -> stockDialog(customerIndex, productIndex));
-                TextView historyButton = action("◷   স্টক পরিবর্তনের ইতিহাস",
-                        darkMode ? Color.rgb(48, 53, 68) : Color.rgb(245, 246, 250),
-                        darkMode ? Color.rgb(205, 215, 230) : MUTED, 12);
-                LinearLayout.LayoutParams historyParams = new LinearLayout.LayoutParams(-1, dp(38));
-                historyParams.topMargin = dp(6);
-                card.addView(historyButton, historyParams);
-                historyButton.setOnClickListener(v -> showStockHistory(product));
-                LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(-1, -2);
-                cardParams.bottomMargin = dp(9);
-                listArea.addView(card, cardParams);
-            }
-        }
-        if (!found) listArea.addView(emptyState("▦", "কোনো পণ্য নেই", "কাস্টমারের তালিকা থেকে পণ্য যোগ করুন।"));
-    }
-
-    private void stockDialog(int customerIndex, int productIndex) {
-        JSONObject customer = customers.get(customerIndex);
-        JSONArray products = customer.optJSONArray("products");
-        if (products == null) return;
-        JSONObject product = products.optJSONObject(productIndex);
-        if (product == null) return;
-        int oldStock = (int) parseMoney(product.optString("stock", "0"));
-        EditText quantity = field("নতুন মোট মজুতের পরিমাণ", android.text.InputType.TYPE_CLASS_NUMBER, false);
-        quantity.setText(String.valueOf(oldStock));
-        EditText reason = field("কারণ (যেমন: নতুন মাল কেনা / সংশোধন)", android.text.InputType.TYPE_CLASS_TEXT, false);
-        LinearLayout form = column();
-        form.addView(quantity);
-        addGap(form, 8);
-        form.addView(reason);
-        new AlertDialog.Builder(this).setTitle(product.optString("name") + " — স্টক")
-            .setMessage("বর্তমান মোট মজুতের নতুন সংখ্যা লিখুন। পরিবর্তনের ইতিহাসও সংরক্ষণ হবে।")
-            .setView(form)
-            .setPositiveButton("সংরক্ষণ", (d, w) -> {
-                String value = quantity.getText().toString().trim();
-                if (value.isEmpty() || parseMoney(value) < 0) {
-                    Toast.makeText(this, "সঠিক স্টকের পরিমাণ লিখুন।", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                try {
-                    int newStock = (int) parseMoney(value);
-                    int delta = newStock - oldStock;
-                    product.put("stock", String.valueOf(newStock));
-                    if (delta != 0) recordStockMovement(product, delta,
-                            reason.getText().toString().trim().isEmpty() ? "স্টক সংশোধন" : reason.getText().toString().trim());
-                    saveData();
-                    showStockManagement();
-                    Toast.makeText(this, "স্টকের পরিমাণ আপডেট হয়েছে।", Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    Toast.makeText(this, "স্টক আপডেট করা যায়নি।", Toast.LENGTH_SHORT).show();
-                }
-            }).setNegativeButton("বাতিল", null).show();
-    }
-
-    private void recordStockMovement(JSONObject product, int delta, String reason) {
-        try {
-            JSONArray history = product.optJSONArray("stockHistory");
-            if (history == null) history = new JSONArray();
-            JSONObject movement = new JSONObject();
-            movement.put("delta", delta);
-            movement.put("reason", reason);
-            movement.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-                    .format(new java.util.Date()));
-            movement.put("stockAfter", product.optString("stock", "0"));
-            history.put(movement);
-            product.put("stockHistory", history);
-        } catch (Exception ignored) {}
-    }
-
-    private void showStockHistory(JSONObject product) {
-        JSONArray history = product.optJSONArray("stockHistory");
-        if (history == null || history.length() == 0) {
-            new AlertDialog.Builder(this).setTitle("স্টক ইতিহাস")
-                    .setMessage("এই পণ্যের জন্য এখনো কোনো স্টক পরিবর্তনের ইতিহাস নেই।")
-                    .setPositiveButton("ঠিক আছে", null).show();
-            return;
-        }
-        StringBuilder details = new StringBuilder();
-        for (int i = history.length() - 1; i >= 0; i--) {
-            JSONObject item = history.optJSONObject(i);
-            if (item == null) continue;
-            int delta = item.optInt("delta");
-            details.append(item.optString("date")).append("\n")
-                    .append(delta > 0 ? "+" : "").append(delta).append(" টি — ")
-                    .append(item.optString("reason")).append("\n")
-                    .append("পরিবর্তনের পর মজুত: ").append(item.optString("stockAfter")).append(" টি\n\n");
-        }
-        new AlertDialog.Builder(this).setTitle(product.optString("name") + " — স্টক ইতিহাস")
-                .setMessage(details.toString()).setPositiveButton("বন্ধ", null).show();
-    }
-
-        private LinearLayout emptyState(String symbol, String heading, String message) {
+    private LinearLayout emptyState(String symbol, String heading, String message) {
         LinearLayout panel = column();
         panel.setGravity(Gravity.CENTER);
         panel.setPadding(dp(20), dp(25), dp(20), dp(25));
@@ -931,35 +536,9 @@ public class MainActivity extends Activity {
                 | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
         EditText note = field(sale ? "বিবরণ / পণ্যের নাম (ঐচ্ছিক)" : "জমার বিবরণ (ঐচ্ছিক)",
                 android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
-        Spinner productPicker = null;
-        EditText quantity = null;
-        JSONArray products = customer.optJSONArray("products");
-        if (sale && products != null && products.length() > 0) {
-            ArrayList<String> productNames = new ArrayList<>();
-            productNames.add("পণ্য নির্বাচন (ঐচ্ছিক — স্টক কমবে)");
-            for (int i = 0; i < products.length(); i++) {
-                JSONObject p = products.optJSONObject(i);
-                productNames.add(p == null ? "অজানা পণ্য" : p.optString("name"));
-            }
-            productPicker = new Spinner(this);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, productNames);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            productPicker.setAdapter(adapter);
-            quantity = field("বিক্রির পরিমাণ (ডিফল্ট ১)", android.text.InputType.TYPE_CLASS_NUMBER, false);
-            quantity.setText("1");
-            form.addView(label("স্টক থেকে বিক্রিত পণ্য", 13, true, INK));
-            addGap(form, 5);
-            form.addView(productPicker);
-            addGap(form, 8);
-            form.addView(quantity);
-            addGap(form, 10);
-        }
         form.addView(amount);
         addGap(form, 10);
         form.addView(note);
-        final Spinner selectedProduct = productPicker;
-        final EditText soldQuantity = quantity;
         new AlertDialog.Builder(this)
             .setTitle(sale ? "নতুন বিক্রি / বাকি যোগ" : "টাকা জমা যোগ")
             .setView(form)
@@ -970,36 +549,10 @@ public class MainActivity extends Activity {
                     return;
                 }
                 try {
-                    JSONObject linkedProduct = null;
-                    int sold = 0;
-                    if (sale && selectedProduct != null && selectedProduct.getSelectedItemPosition() > 0) {
-                        int productIndex = selectedProduct.getSelectedItemPosition() - 1;
-                        linkedProduct = products.optJSONObject(productIndex);
-                        sold = soldQuantity == null ? 1 : Integer.parseInt(soldQuantity.getText().toString().trim());
-                        if (linkedProduct == null || sold <= 0) {
-                            Toast.makeText(this, "সঠিক পণ্য ও পরিমাণ নির্বাচন করুন।", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        int available = (int) parseMoney(linkedProduct.optString("stock", "0"));
-                        if (sold > available) {
-                            Toast.makeText(this, "পর্যাপ্ত স্টক নেই। বর্তমান মজুত: " + available + " টি", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                    }
                     JSONObject entry = new JSONObject();
                     entry.put("type", type);
                     entry.put("amount", raw);
-                    String details = note.getText().toString().trim();
-                    if (linkedProduct != null) {
-                        String productName = linkedProduct.optString("name");
-                        entry.put("productName", productName);
-                        entry.put("quantity", sold);
-                        if (details.isEmpty()) details = productName + " × " + sold;
-                        int remaining = (int) parseMoney(linkedProduct.optString("stock", "0")) - sold;
-                        linkedProduct.put("stock", String.valueOf(remaining));
-                        recordStockMovement(linkedProduct, -sold, "বিক্রি: " + productName);
-                    }
-                    entry.put("note", details);
+                    entry.put("note", note.getText().toString().trim());
                     entry.put("date", new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
                             .format(new java.util.Date()));
                     transactions(customer).put(entry);
@@ -1259,7 +812,6 @@ public class MainActivity extends Activity {
         metrics.addView(expenseDivider, expenseDividerParams);
         metrics.addView(statTile("মোট খরচ", "৳ " + formatMoney(periodExpenseTotal(period)), "−", Color.rgb(164, 72, 49)));
         metrics.addView(statTile("জমা থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("payment", period) - periodExpenseTotal(period)), "=", TEAL));
-        metrics.addView(statTile("বিক্রি থেকে খরচ বাদে", "৳ " + formatMoney(periodTotal("sale", period) - periodExpenseTotal(period)), "∑", Color.rgb(34, 132, 93)));
         LinearLayout.LayoutParams metricParams = new LinearLayout.LayoutParams(-1, -2);
         metricParams.topMargin = dp(12);
         metricParams.bottomMargin = dp(12);
@@ -1526,12 +1078,6 @@ public class MainActivity extends Activity {
         summaryParams.bottomMargin = dp(12);
         root.addView(summary, 4, summaryParams);
 
-        TextView profile = primaryAction("◉   কাস্টমার প্রোফাইল ও সম্পূর্ণ হিসাব");
-        LinearLayout.LayoutParams profileParams = new LinearLayout.LayoutParams(-1, dp(46));
-        profileParams.bottomMargin = dp(9);
-        root.addView(profile, 5, profileParams);
-        profile.setOnClickListener(v -> showCustomerProfile(selectedCustomer));
-
         TextView shareReport = action("↗   কাস্টমার রিপোর্ট শেয়ার করুন",
                 darkMode ? Color.rgb(37, 51, 70) : Color.rgb(232, 242, 255),
                 darkMode ? Color.rgb(186, 216, 255) : Color.rgb(31, 75, 145), 13);
@@ -1539,15 +1085,6 @@ public class MainActivity extends Activity {
         shareParams.bottomMargin = dp(12);
         root.addView(shareReport, shareParams);
         shareReport.setOnClickListener(v -> shareCustomerReport(c));
-
-        TextView invoice = primaryAction("▤   PDF ইনভয়েস তৈরি করুন");
-        LinearLayout.LayoutParams invoiceParams = new LinearLayout.LayoutParams(-1, dp(46));
-        invoiceParams.bottomMargin = dp(10);
-        root.addView(invoice, invoiceParams);
-        invoice.setOnClickListener(v -> shareDigitalInvoice(c));
-        TextView receipt=action("৳   টাকা জমার PDF রসিদ",darkMode?Color.rgb(37,51,70):Color.rgb(250,244,230),darkMode?Color.rgb(255,218,145):Color.rgb(143,101,29),13);
-        LinearLayout.LayoutParams receiptParams=new LinearLayout.LayoutParams(-1,dp(44));receiptParams.bottomMargin=dp(10);
-        root.addView(receipt,receiptParams);receipt.setOnClickListener(v->showReceiptPicker(c));
 
         renderProducts("");
         search.addTextChangedListener(watcher(s -> renderProducts(s)));
@@ -1586,88 +1123,6 @@ public class MainActivity extends Activity {
         }
     }
 
-
-    private void shareDigitalInvoice(JSONObject customer) {
-        JSONArray entries=transactions(customer);
-        ArrayList<JSONObject> sales=new ArrayList<>();
-        ArrayList<String> labels=new ArrayList<>();
-        for(int i=entries.length()-1;i>=0;i--) {
-            JSONObject e=entries.optJSONObject(i);
-            if(e!=null && "sale".equals(e.optString("type"))) {
-                sales.add(e);
-                labels.add("৳ "+formatMoney(parseMoney(e.optString("amount")))+"  •  "+e.optString("date")+"  •  "+e.optString("productName",e.optString("note","বিক্রি")));
-            }
-        }
-        if(sales.isEmpty()) {
-            Toast.makeText(this,"ইনভয়েস তৈরির আগে এই কাস্টমারের বিক্রির হিসাব যোগ করুন।",Toast.LENGTH_LONG).show();
-            return;
-        }
-        new AlertDialog.Builder(this).setTitle("কোন বিক্রির ইনভয়েস তৈরি করবেন?")
-            .setItems(labels.toArray(new String[0]),(d,which)->{
-                pendingInvoiceCustomer=customer;pendingInvoiceTransaction=sales.get(which);
-                String safeName=customer.optString("name","Customer").replaceAll("[^\\p{L}\\p{N}._-]","_");
-                Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/pdf");
-                intent.putExtra(Intent.EXTRA_TITLE,"AmarCustomer-Invoice-"+safeName+"-"+System.currentTimeMillis()+".pdf");
-                startActivityForResult(intent,REQUEST_INVOICE_PDF);
-            }).setNegativeButton("বাতিল",null).show();
-    }
-
-    private void writeInvoicePdf(Uri uri, JSONObject customer, JSONObject sale) {
-        PdfDocument document=new PdfDocument();OutputStream output=null;
-        try {
-            PdfDocument.Page page=document.startPage(new PdfDocument.PageInfo.Builder(595,842,1).create());
-            Canvas canvas=page.getCanvas();canvas.drawColor(Color.WHITE);
-            Paint p=new Paint(Paint.ANTI_ALIAS_FLAG),gold=new Paint(Paint.ANTI_ALIAS_FLAG);
-            p.setColor(Color.rgb(7,20,47));canvas.drawRect(0,0,595,158,p);
-            String shop=getPreferences(MODE_PRIVATE).getString("shop_name","আমার কাস্টমার");
-            p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(25);
-            canvas.drawText(shop,42,54,p);
-            p.setTypeface(Typeface.DEFAULT);p.setTextSize(13);
-            canvas.drawText(getPreferences(MODE_PRIVATE).getString("shop_phone",""),42,81,p);
-            canvas.drawText(getPreferences(MODE_PRIVATE).getString("shop_address",""),42,103,p);
-            gold.setColor(Color.rgb(232,198,128));gold.setTypeface(Typeface.DEFAULT_BOLD);gold.setTextSize(13);
-            canvas.drawText("PREMIUM SALES INVOICE",42,133,gold);
-            String invoiceNo=nextDocumentNumber("INV");
-            p.setColor(Color.rgb(31,44,62));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(19);
-            canvas.drawText("বিক্রয় ইনভয়েস",42,205,p);
-            p.setTypeface(Typeface.DEFAULT);p.setTextSize(12);
-            canvas.drawText("ইনভয়েস নম্বর: "+invoiceNo,42,235,p);
-            canvas.drawText("বিক্রয়ের তারিখ: "+sale.optString("date"),42,257,p);
-            canvas.drawText("কাস্টমার: "+customer.optString("name"),42,295,p);
-            canvas.drawText("মোবাইল: "+customer.optString("phone","—"),42,318,p);
-            canvas.drawText("ঠিকানা: "+customer.optString("address","—"),42,341,p);
-            p.setColor(Color.rgb(8,25,54));canvas.drawRect(42,372,553,405,p);
-            p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(12);
-            canvas.drawText("বিবরণ",52,393,p);canvas.drawText("পরিমাণ",300,393,p);
-            canvas.drawText("একক মূল্য",380,393,p);canvas.drawText("মোট",490,393,p);
-            String product=sale.optString("productName","").trim();
-            String description=product.isEmpty()?sale.optString("note","বিক্রয়"):product;
-            int quantity=Math.max(1,sale.optInt("quantity",1));
-            double total=parseMoney(sale.optString("amount"));
-            double unitPrice=total/quantity;
-            p.setColor(Color.rgb(35,47,64));p.setTypeface(Typeface.DEFAULT);p.setTextSize(12);
-            canvas.drawText(description.length()>30?description.substring(0,30):description,52,440,p);
-            canvas.drawText(String.valueOf(quantity),310,440,p);
-            canvas.drawText("৳ "+formatMoney(unitPrice),380,440,p);
-            canvas.drawText("৳ "+formatMoney(total),480,440,p);
-            p.setColor(Color.rgb(220,226,234));canvas.drawRect(42,461,553,463,p);
-            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(18);
-            canvas.drawText("সর্বমোট: ৳ "+formatMoney(total),355,505,p);
-            p.setColor(Color.rgb(40,54,72));p.setTypeface(Typeface.DEFAULT);p.setTextSize(12);
-            canvas.drawText("কাস্টমারের বর্তমান বকেয়া: ৳ "+formatMoney(customerDue(customer)),42,552,p);
-            canvas.drawText("এ পর্যন্ত মোট জমা: ৳ "+formatMoney(sumTransactions(customer,"payment")),42,575,p);
-            p.setColor(Color.rgb(112,125,143));p.setTextSize(11);
-            canvas.drawText("পণ্য/বিক্রির হিসাব অনুযায়ী প্রস্তুতকৃত চালান।",42,770,p);
-            canvas.drawText("ধন্যবাদ — "+shop,42,792,p);
-            document.finishPage(page);
-            output=getContentResolver().openOutputStream(uri);if(output==null)throw new Exception("No output");
-            document.writeTo(output);output.flush();
-            Toast.makeText(this,"PDF ইনভয়েস তৈরি হয়েছে: "+invoiceNo,Toast.LENGTH_LONG).show();
-        } catch(Exception e) {Toast.makeText(this,"PDF ইনভয়েস তৈরি করা যায়নি।",Toast.LENGTH_LONG).show();}
-        finally {try{if(output!=null)output.close();}catch(Exception ignored){}document.close();}
-    }
-
     private void renderProducts(String filter) {
         listArea.removeAllViews();
         if (selectedCustomer < 0 || selectedCustomer >= customers.size()) return;
@@ -1685,7 +1140,6 @@ public class MainActivity extends Activity {
             final int ix = i;
             String name = p.optString("name");
             String price = p.optString("price");
-            String stock = p.optString("stock", "0");
             if (!name.toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = row();
@@ -1705,9 +1159,6 @@ public class MainActivity extends Activity {
             card.addView(productMark, productMarkParams);
             LinearLayout info = column();
             info.addView(label(name, 16, true, INK));
-            String category = p.optString("category", "অন্যান্য");
-            info.addView(label("ধরন: " + category + "   •   মজুত: " + stock + " টি", 12, true,
-                    parseMoney(stock) <= 3 ? Color.rgb(190, 90, 48) : TEAL));
             TextView priceLabel = label("৳  " + price, 15, true, darkMode ? Color.rgb(255, 218, 145) : Color.rgb(143, 101, 29));
             priceLabel.setPadding(dp(10), dp(5), dp(10), dp(5));
             priceLabel.setBackground(shape(darkMode ? Color.rgb(61, 53, 39) : Color.rgb(250, 244, 230), Color.rgb(224, 204, 164), 10));
@@ -1758,26 +1209,16 @@ public class MainActivity extends Activity {
         LinearLayout form = column();
         form.setPadding(dp(4), dp(5), dp(4), 0);
         EditText name = field("পণ্যের নাম", android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, false);
-        EditText price = field("একক দাম", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
-        EditText stock = field("বর্তমান মজুতের পরিমাণ (ঐচ্ছিক)", android.text.InputType.TYPE_CLASS_NUMBER, false);
-        Spinner category = new Spinner(this);
-        String[] categories = {"সাধারণ", "খাদ্যপণ্য", "পোশাক", "ইলেকট্রনিক্স", "প্রসাধনী", "গৃহস্থালি", "অন্যান্য"};
-        category.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, categories));
+        EditText price = field("দাম", android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL, false);
         form.addView(name);
         addGap(form, 10);
         form.addView(price);
-        addGap(form, 10);
-        form.addView(stock);
-        addGap(form, 8);
-        form.addView(category, new LinearLayout.LayoutParams(-1, dp(48)));
 
         JSONArray arr = customers.get(selectedCustomer).optJSONArray("products");
         if (index >= 0) {
             JSONObject p = arr.optJSONObject(index);
             name.setText(p.optString("name"));
             price.setText(p.optString("price"));
-            stock.setText(p.optString("stock"));
-            for (int i = 0; i < categories.length; i++) if (categories[i].equals(p.optString("category", "অন্যান্য"))) category.setSelection(i);
         }
 
         new AlertDialog.Builder(this)
@@ -1786,14 +1227,11 @@ public class MainActivity extends Activity {
             .setPositiveButton("সংরক্ষণ", (d, w) -> {
                 String n = name.getText().toString().trim();
                 String pr = price.getText().toString().trim();
-                String st = stock.getText().toString().trim();
                 if (!n.isEmpty()) {
                     try {
                         JSONObject p = index < 0 ? new JSONObject() : arr.getJSONObject(index);
                         p.put("name", n);
                         p.put("price", pr);
-                        p.put("stock", st.isEmpty() ? "0" : st);
-                        p.put("category", category.getSelectedItem().toString());
                         if (index < 0) arr.put(p);
                         saveData();
                         showProducts(selectedCustomer);
@@ -1805,362 +1243,8 @@ public class MainActivity extends Activity {
     }
 
 
-
-    private void showCustomerProfile(int index) {
-        if (index < 0 || index >= customers.size()) return;
-        selectedCustomer = index;
-        JSONObject customer = customers.get(index);
-        base("কাস্টমার প্রোফাইল", customer.optString("name") + " • সম্পূর্ণ ব্যবসায়িক সম্পর্ক");
-        search.setVisibility(View.GONE);
-        TextView back = action("←   পণ্যের তালিকায় ফিরুন", Color.WHITE, INK, 12);
-        root.addView(back, 2, new LinearLayout.LayoutParams(-1, dp(42)));
-        back.setOnClickListener(v -> showProducts(index));
-        listArea.removeAllViews();
-        LinearLayout hero = column();
-        hero.setPadding(dp(18), dp(18), dp(18), dp(18));
-        GradientDrawable heroBg = new GradientDrawable(GradientDrawable.Orientation.TL_BR,
-                new int[]{Color.rgb(7, 35, 69), ACCENTS[accentTheme], Color.rgb(18, 105, 105)});
-        heroBg.setCornerRadius(dp(22));
-        hero.setBackground(heroBg);
-        hero.setElevation(dp(7));
-        hero.addView(label(customer.optString("name"), 22, true, Color.WHITE));
-        hero.addView(label("⌖  " + customer.optString("address", "ঠিকানা দেওয়া হয়নি"), 13, false, Color.WHITE));
-        hero.addView(label("☎  " + customer.optString("phone", "মোবাইল দেওয়া হয়নি"), 13, true, Color.WHITE));
-        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(-1, -2); hp.bottomMargin = dp(12);
-        listArea.addView(hero, hp);
-        LinearLayout metrics = row();
-        metrics.setPadding(dp(12), dp(14), dp(12), dp(14));
-        metrics.setBackground(shape(Color.WHITE, BORDER, 18));
-        metrics.addView(statTile("মোট বিক্রি", "৳ " + formatMoney(sumTransactions(customer, "sale")), "↗", BLUE), new LinearLayout.LayoutParams(0,-2,1));
-        metrics.addView(statTile("মোট জমা", "৳ " + formatMoney(sumTransactions(customer, "payment")), "✓", TEAL), new LinearLayout.LayoutParams(0,-2,1));
-        metrics.addView(statTile("বকেয়া", "৳ " + formatMoney(customerDue(customer)), "!", Color.rgb(180,75,55)), new LinearLayout.LayoutParams(0,-2,1));
-        LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(-1,-2); mp.bottomMargin = dp(12);
-        listArea.addView(metrics, mp);
-        LinearLayout actions = column();
-        TextView reminder = primaryAction("◷   পেমেন্ট রিমাইন্ডার শেয়ার করুন");
-        actions.addView(reminder, new LinearLayout.LayoutParams(-1, dp(46)));
-        reminder.setOnClickListener(v -> shareDueReminder(customer));
-        TextView invoice = action("▤   PDF ইনভয়েস তৈরি করুন", darkMode ? Color.rgb(37,51,70) : Color.rgb(232,242,255), BLUE, 13);
-        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(-1, dp(44)); ip.topMargin = dp(8);
-        actions.addView(invoice, ip); invoice.setOnClickListener(v -> shareDigitalInvoice(customer));
-        TextView receipt=action("৳   টাকা জমার PDF রসিদ",darkMode?Color.rgb(37,51,70):Color.rgb(250,244,230),darkMode?Color.rgb(255,218,145):Color.rgb(143,101,29),13);
-        LinearLayout.LayoutParams receiptParams=new LinearLayout.LayoutParams(-1,dp(44));receiptParams.topMargin=dp(8);
-        actions.addView(receipt,receiptParams);receipt.setOnClickListener(v->showReceiptPicker(customer));
-        LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(-1,-2); ap.bottomMargin = dp(12);
-        listArea.addView(actions, ap);
-        listArea.addView(label("লেনদেনের সম্পূর্ণ ইতিহাস", 17, true, INK));
-        JSONArray entries = transactions(customer);
-        if (entries.length() == 0) listArea.addView(emptyState("≋","এখনো লেনদেন নেই","বিক্রি বা জমার হিসাব যোগ করলে এখানে দেখা যাবে।"));
-        for (int i=entries.length()-1;i>=0;i--) {
-            JSONObject e=entries.optJSONObject(i); if(e==null) continue;
-            boolean sale="sale".equals(e.optString("type"));
-            LinearLayout card=column(); card.setPadding(dp(13),dp(12),dp(13),dp(12));
-            card.setBackground(shape(Color.WHITE,BORDER,15)); card.setElevation(dp(2));
-            LinearLayout top=row();
-            top.addView(label(sale ? "বিক্রয়" : "টাকা জমা",14,true,sale?BLUE:TEAL),new LinearLayout.LayoutParams(0,-2,1));
-            top.addView(label("৳ "+formatMoney(parseMoney(e.optString("amount"))),15,true,sale?BLUE:TEAL));
-            card.addView(top);
-            card.addView(label(e.optString("date")+"  •  "+e.optString("note",""),12,false,MUTED));
-            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2); cp.bottomMargin=dp(7);
-            listArea.addView(card,cp);
-        }
-    }
-
-    private void showAnalytics(String period) {
-        selectedCustomer = -1;
-        base("স্মার্ট ব্যবসা অ্যানালিটিক্স", "বিক্রি • জমা • খরচ • নিট ফলাফল");
-        search.setVisibility(View.GONE);
-        TextView back=action("←   হোমে ফিরুন",Color.WHITE,INK,12);
-        root.addView(back,2,new LinearLayout.LayoutParams(-1,dp(42)));
-        back.setOnClickListener(v->showCustomers());
-        LinearLayout filters=row();
-        String[] keys={"today","week","month","all"}, names={"আজ","সপ্তাহ","মাস","সব"};
-        for(int i=0;i<keys.length;i++){ final String k=keys[i]; TextView chip=action(names[i],k.equals(period)?ACCENTS[accentTheme]:(darkMode?Color.rgb(37,51,70):Color.WHITE),k.equals(period)?Color.WHITE:INK,12); LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(0,dp(40),1); cp.setMargins(dp(2),dp(9),dp(2),dp(9)); filters.addView(chip,cp); chip.setOnClickListener(v->showAnalytics(k)); }
-        root.addView(filters,3);
-        LinearLayout grid=column(); grid.setPadding(dp(14),dp(14),dp(14),dp(14)); grid.setBackground(shape(Color.WHITE,BORDER,20)); grid.setElevation(dp(4));
-        addAnalyticsMetric(grid,"বিক্রি",periodTotal("sale",period),BLUE);
-        addAnalyticsMetric(grid,"জমা",periodTotal("payment",period),TEAL);
-        addAnalyticsMetric(grid,"ব্যবসার খরচ",periodExpenseTotal(period),Color.rgb(180,75,55));
-        addAnalyticsMetric(grid,"বিক্রি − খরচ (আনুমানিক)",periodTotal("sale",period)-periodExpenseTotal(period),ACCENTS[accentTheme]);
-        LinearLayout.LayoutParams gp=new LinearLayout.LayoutParams(-1,-2); gp.topMargin=dp(12); gp.bottomMargin=dp(12); root.addView(grid,4,gp);
-        listArea.removeAllViews();
-        TextView export=primaryAction("⇩   বিস্তারিত CSV রিপোর্ট সংরক্ষণ করুন");
-        LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(-1,dp(43));ep.bottomMargin=dp(10);root.addView(export,5,ep);
-        export.setOnClickListener(v->{pendingReportPeriod=period;Intent out=new Intent(Intent.ACTION_CREATE_DOCUMENT);out.addCategory(Intent.CATEGORY_OPENABLE);out.setType("text/csv");out.putExtra(Intent.EXTRA_TITLE,"AmarCustomer-Analytics-"+period+".csv");startActivityForResult(out,REQUEST_REPORT_EXPORT);});
-        listArea.addView(label("বিক্রির পারফরম্যান্স",16,true,INK));
-        LinearLayout performance=column(); performance.setPadding(dp(14),dp(13),dp(14),dp(13)); performance.setBackground(shape(Color.WHITE,BORDER,18)); performance.setElevation(dp(3));
-        double totalSales=periodTotal("sale",period), totalExpenses=periodExpenseTotal(period);
-        performance.addView(label("নির্বাচিত সময়ের মোট বিক্রি",12,false,MUTED));
-        performance.addView(label("৳ "+formatMoney(totalSales),22,true,ACCENTS[accentTheme]));
-        performance.addView(label("খরচ বাদে আনুমানিক ফলাফল  ৳ "+formatMoney(totalSales-totalExpenses),12,true,totalSales>=totalExpenses?TEAL:Color.rgb(190,75,65)));
-        LinearLayout.LayoutParams perfp=new LinearLayout.LayoutParams(-1,-2); perfp.bottomMargin=dp(12); listArea.addView(performance,perfp);
-        listArea.addView(label("পণ্যভিত্তিক মজুত ও মূল্য",16,true,INK));
-        java.util.HashMap<String,Integer> categories=new java.util.HashMap<>();
-        for(JSONObject c:customers){JSONArray ps=c.optJSONArray("products"); if(ps==null)continue; for(int i=0;i<ps.length();i++){JSONObject p=ps.optJSONObject(i);if(p==null)continue;String cat=p.optString("category","অন্যান্য");categories.put(cat,categories.containsKey(cat)?categories.get(cat)+1:1);}}
-        if(categories.isEmpty()) listArea.addView(emptyState("▦","পণ্য নেই","পণ্য যোগ করলে ক্যাটাগরি অনুযায়ী বিশ্লেষণ দেখা যাবে."));
-        for(String cat:categories.keySet()){LinearLayout tile=row();tile.setPadding(dp(12),dp(11),dp(12),dp(11));tile.setBackground(shape(Color.WHITE,BORDER,13));tile.addView(label(cat,14,true,INK),new LinearLayout.LayoutParams(0,-2,1));tile.addView(label(categories.get(cat)+"টি পণ্য",13,true,ACCENTS[accentTheme]));LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-1,-2);tp.topMargin=dp(6);listArea.addView(tile,tp);}
-        addAnalyticsTrendChart();
-        addAnalyticsRankings(period);
-        listArea.addView(label("খরচের খাতভিত্তিক সারাংশ",16,true,INK));
-        java.util.HashMap<String,Double> expenseMap=new java.util.HashMap<>();
-        for(int i=0;i<expenses.length();i++){JSONObject e=expenses.optJSONObject(i);if(e==null||!inReportPeriod(e.optString("date"),period))continue;String cat=e.optString("category","অন্যান্য");expenseMap.put(cat,(expenseMap.containsKey(cat)?expenseMap.get(cat):0)+parseMoney(e.optString("amount")));}
-        for(String cat:expenseMap.keySet()){listArea.addView(label(cat+"  •  ৳ "+formatMoney(expenseMap.get(cat)),13,false,MUTED));}
-    }
-
-
-    private void addAnalyticsTrendChart() {
-        listArea.addView(label("গত ৭ দিনের বিক্রি ও খরচ",16,true,INK));
-        View chart = new View(this) {
-            private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-            @Override protected void onDraw(Canvas canvas) {
-                super.onDraw(canvas);
-                int count = 7;
-                float width = getWidth(), height = getHeight();
-                float slot = width / count;
-                java.text.SimpleDateFormat dayKey = new java.text.SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-                java.text.SimpleDateFormat dayLabel = new java.text.SimpleDateFormat("dd", Locale.getDefault());
-                java.util.Calendar cal = java.util.Calendar.getInstance();
-                cal.set(java.util.Calendar.HOUR_OF_DAY,0); cal.set(java.util.Calendar.MINUTE,0);
-                cal.set(java.util.Calendar.SECOND,0); cal.set(java.util.Calendar.MILLISECOND,0);
-                cal.add(java.util.Calendar.DAY_OF_MONTH,-6);
-                double[] sales = new double[count], costs = new double[count];
-                double max = 1;
-                for (int d=0; d<count; d++) {
-                    String key = dayKey.format(cal.getTime());
-                    for (JSONObject customer : customers) {
-                        JSONArray entries = transactions(customer);
-                        for (int j=0;j<entries.length();j++) {
-                            JSONObject e=entries.optJSONObject(j);
-                            if(e==null || !key.equals(e.optString("date").length()>=10?e.optString("date").substring(0,10):"")) continue;
-                            if("sale".equals(e.optString("type"))) sales[d]+=parseMoney(e.optString("amount"));
-                        }
-                    }
-                    for(int j=0;j<expenses.length();j++) {
-                        JSONObject e=expenses.optJSONObject(j);
-                        if(e!=null && key.equals(e.optString("date").length()>=10?e.optString("date").substring(0,10):"")) costs[d]+=parseMoney(e.optString("amount"));
-                    }
-                    max=Math.max(max,Math.max(sales[d],costs[d]));
-                    cal.add(java.util.Calendar.DAY_OF_MONTH,1);
-                }
-                float base=height-dp(22), usable=height-dp(34);
-                for(int d=0;d<count;d++) {
-                    float x=slot*d+slot/2f;
-                    float sh=(float)(sales[d]/max)*usable, ch=(float)(costs[d]/max)*usable;
-                    p.setColor(ACCENTS[accentTheme]);
-                    canvas.drawRoundRect(x-dp(10),base-sh,x-dp(1),base,dp(4),dp(4),p);
-                    p.setColor(Color.rgb(204,151,77));
-                    canvas.drawRoundRect(x+dp(2),base-ch,x+dp(11),base,dp(4),dp(4),p);
-                    p.setColor(themedText(MUTED)); p.setTextSize(dp(9));
-                    java.util.Calendar labelCal=java.util.Calendar.getInstance();
-                    labelCal.set(java.util.Calendar.HOUR_OF_DAY,0);labelCal.set(java.util.Calendar.MINUTE,0);
-                    labelCal.set(java.util.Calendar.SECOND,0);labelCal.set(java.util.Calendar.MILLISECOND,0);
-                    labelCal.add(java.util.Calendar.DAY_OF_MONTH,d-6);
-                    String day=dayLabel.format(labelCal.getTime());
-                    canvas.drawText(day,x-dp(6),height-dp(4),p);
-                }
-            }
-        };
-        chart.setBackground(shape(Color.WHITE,BORDER,16));
-        LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,dp(145));
-        cp.topMargin=dp(8); cp.bottomMargin=dp(12); listArea.addView(chart,cp);
-        LinearLayout legend=row();
-        legend.addView(label("● বিক্রি",11,true,ACCENTS[accentTheme]),new LinearLayout.LayoutParams(0,-2,1));
-        legend.addView(label("● খরচ",11,true,Color.rgb(190,133,59)));
-        listArea.addView(legend);
-    }
-
-    private void addAnalyticsRankings(String period) {
-        java.util.HashMap<String,Double> customerSales=new java.util.HashMap<>();
-        java.util.HashMap<String,Double> productSales=new java.util.HashMap<>();
-        for(JSONObject customer:customers) {
-            JSONArray entries=transactions(customer);
-            double amount=0;
-            for(int i=0;i<entries.length();i++) {
-                JSONObject e=entries.optJSONObject(i);
-                if(e==null || !"sale".equals(e.optString("type")) || !inReportPeriod(e.optString("date"),period)) continue;
-                double value=parseMoney(e.optString("amount"));
-                amount+=value;
-                String product=e.optString("productName","").trim();
-                if(!product.isEmpty()) productSales.put(product,(productSales.containsKey(product)?productSales.get(product):0)+value);
-            }
-            if(amount>0) customerSales.put(customer.optString("name","অজানা"),amount);
-        }
-        listArea.addView(label("সেরা ৫ কাস্টমার (বিক্রির ভিত্তিতে)",16,true,INK));
-        addRankingRows(customerSales,"কাস্টমারের বিক্রি");
-        listArea.addView(label("সেরা ৫ বিক্রিত পণ্য",16,true,INK));
-        addRankingRows(productSales,"পণ্য বিক্রির মূল্য");
-        if(productSales.isEmpty()) listArea.addView(label("পণ্য নির্বাচন করে বিক্রির হিসাব যোগ করলে এখানে সেরা পণ্য দেখা যাবে।",12,false,MUTED));
-    }
-
-    private void addRankingRows(java.util.HashMap<String,Double> values,String description) {
-        java.util.ArrayList<String> names=new java.util.ArrayList<>(values.keySet());
-        java.util.Collections.sort(names,(a,b)->Double.compare(values.get(b),values.get(a)));
-        int limit=Math.min(5,names.size());
-        for(int i=0;i<limit;i++) {
-            String name=names.get(i);
-            LinearLayout item=row(); item.setPadding(dp(11),dp(9),dp(11),dp(9));
-            item.setBackground(shape(Color.WHITE,BORDER,13));
-            item.addView(label((i+1)+". "+name,13,true,INK),new LinearLayout.LayoutParams(0,-2,1));
-            item.addView(label("৳ "+formatMoney(values.get(name)),13,true,ACCENTS[accentTheme]));
-            LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(-1,-2);rp.topMargin=dp(5);listArea.addView(item,rp);
-        }
-        if(names.isEmpty()) listArea.addView(label("এই সময়ের জন্য পর্যাপ্ত বিক্রির তথ্য নেই।",12,false,MUTED));
-    }
-
-    private void addAnalyticsMetric(LinearLayout parent,String title,double amount,int color){
-        TextView metric=label(title+"     ৳ "+formatMoney(amount),15,true,color);
-        metric.setPadding(dp(7),dp(9),dp(7),dp(9)); parent.addView(metric);
-    }
-
-    private void showDueReminders(){
-        selectedCustomer=-1; base("বকেয়া রিমাইন্ডার","যাদের কাছে টাকা পাওনা আছে");
-        search.setVisibility(View.GONE);
-        TextView back=action("←   হোমে ফিরুন",Color.WHITE,INK,12);root.addView(back,2,new LinearLayout.LayoutParams(-1,dp(42)));back.setOnClickListener(v->showCustomers());
-        listArea.removeAllViews(); int found=0;
-        for(JSONObject c:customers){double due=customerDue(c);if(due<=0)continue;found++;
-            LinearLayout card=column();card.setPadding(dp(15),dp(14),dp(15),dp(14));card.setBackground(shape(Color.WHITE,BORDER,18));card.setElevation(dp(3));
-            card.addView(label(c.optString("name"),16,true,INK));
-            card.addView(label("বকেয়া ৳ "+formatMoney(due)+"   •   "+c.optString("phone"),13,true,Color.rgb(180,75,55)));
-            TextView send=primaryAction("↗   রিমাইন্ডার পাঠান");LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(-1,dp(42));sp.topMargin=dp(9);card.addView(send,sp);send.setOnClickListener(v->shareDueReminder(c));
-            LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.bottomMargin=dp(9);listArea.addView(card,cp);
-        }
-        if(found==0)listArea.addView(emptyState("✓","কোনো বকেয়া নেই","সব কাস্টমারের হিসাব পরিশোধিত।"));
-    }
-
-    private void shareDueReminder(JSONObject customer){
-        double due=customerDue(customer);
-        String phone=customer.optString("phone","");
-        String msg="প্রিয় "+customer.optString("name")+", আপনার কাছে আমাদের বকেয়া রয়েছে ৳ "+formatMoney(due)+". অনুগ্রহ করে সুবিধামতো পরিশোধ করবেন। ধন্যবাদ — আমার কাস্টমার";
-        Intent send=new Intent(Intent.ACTION_SEND);send.setType("text/plain");send.putExtra(Intent.EXTRA_TEXT,msg);
-        try{startActivity(Intent.createChooser(send,"পেমেন্ট রিমাইন্ডার শেয়ার করুন"));}catch(Exception e){Toast.makeText(this,"শেয়ার করা যাচ্ছে না।",Toast.LENGTH_SHORT).show();}
-    }
-
-    private void showThemePicker(){
-        String[] names={"সমুদ্র নীল","রাজকীয় নীল","বেগুনি","প্রকৃতি সবুজ","গোল্ডেন অ্যাম্বার","রোজ পিংক","স্লেট ব্লু","অলিভ ন্যাচার"};
-        new AlertDialog.Builder(this).setTitle("আপনার পছন্দের থিম").setSingleChoiceItems(names,accentTheme,(d,which)->{accentTheme=which;getPreferences(MODE_PRIVATE).edit().putInt("accent_theme",which).apply();d.dismiss();showCustomers();}).setNegativeButton("বন্ধ",null).show();
-    }
-
-    private String pinHash(String pin){
-        try{java.security.MessageDigest md=java.security.MessageDigest.getInstance("SHA-256");byte[] bytes=md.digest(pin.getBytes(StandardCharsets.UTF_8));StringBuilder out=new StringBuilder();for(byte b:bytes)out.append(String.format(Locale.US,"%02x",b));return out.toString();}catch(Exception e){return pin;}
-    }
-
-    private void promptPinLock(){
-        EditText pin=field("৪-৬ সংখ্যার PIN লিখুন",android.text.InputType.TYPE_CLASS_NUMBER|android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD,false);
-        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("অ্যাপ লক").setMessage("আপনার তথ্য দেখতে PIN দিন।").setView(pin).setCancelable(false).setPositiveButton("খুলুন",null).create();
-        dialog.setOnShowListener(v->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(w->{String value=pin.getText().toString();if(pinHash(value).equals(getPreferences(MODE_PRIVATE).getString("app_pin_hash",""))){dialog.dismiss();}else{pin.setError("PIN সঠিক নয়");}}));
-        dialog.show();
-    }
-
-    private void managePinSecurity(){
-        String existing=getPreferences(MODE_PRIVATE).getString("app_pin_hash","");
-        if(existing.isEmpty()){EditText pin=field("নতুন ৪-৬ সংখ্যার PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("PIN চালু করুন").setView(pin).setPositiveButton("চালু", (d,w)->{String p=pin.getText().toString();if(p.length()<4||p.length()>6){Toast.makeText(this,"৪ থেকে ৬ সংখ্যার PIN দিন।",Toast.LENGTH_SHORT).show();return;}getPreferences(MODE_PRIVATE).edit().putString("app_pin_hash",pinHash(p)).apply();Toast.makeText(this,"PIN নিরাপত্তা চালু হয়েছে।",Toast.LENGTH_SHORT).show();}).setNegativeButton("বাতিল",null).show();}
-        else{EditText current=field("বর্তমান PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("PIN যাচাই").setView(current).setPositiveButton("পরবর্তী", (d,w)->{if(!pinHash(current.getText().toString()).equals(existing)){Toast.makeText(this,"PIN সঠিক নয়।",Toast.LENGTH_SHORT).show();return;}new AlertDialog.Builder(this).setTitle("PIN ব্যবস্থাপনা").setItems(new String[]{"PIN পরিবর্তন","PIN বন্ধ করুন"},(dd,which)->{if(which==1){getPreferences(MODE_PRIVATE).edit().remove("app_pin_hash").apply();Toast.makeText(this,"PIN বন্ধ হয়েছে।",Toast.LENGTH_SHORT).show();}else{EditText next=field("নতুন ৪-৬ সংখ্যার PIN",android.text.InputType.TYPE_CLASS_NUMBER,false);new AlertDialog.Builder(this).setTitle("নতুন PIN").setView(next).setPositiveButton("সংরক্ষণ",(ddd,www)->{String p=next.getText().toString();if(p.length()<4||p.length()>6){Toast.makeText(this,"৪-৬ সংখ্যার PIN দিন।",Toast.LENGTH_SHORT).show();return;}getPreferences(MODE_PRIVATE).edit().putString("app_pin_hash",pinHash(p)).apply();Toast.makeText(this,"PIN পরিবর্তন হয়েছে।",Toast.LENGTH_SHORT).show();}).setNegativeButton("বাতিল",null).show();}}).show();}).setNegativeButton("বাতিল",null).show();}
-    }
-
-
-    private void manageShopProfile() {
-        android.content.SharedPreferences prefs=getPreferences(MODE_PRIVATE);
-        LinearLayout form=column(); form.setPadding(dp(4),dp(5),dp(4),0);
-        EditText name=field("দোকান / প্রতিষ্ঠানের নাম",android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,false);
-        EditText phone=field("দোকানের মোবাইল নম্বর",android.text.InputType.TYPE_CLASS_PHONE,false);
-        EditText address=field("দোকানের ঠিকানা",android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES,true);
-        name.setText(prefs.getString("shop_name","আমার কাস্টমার"));
-        phone.setText(prefs.getString("shop_phone",""));
-        address.setText(prefs.getString("shop_address",""));
-        form.addView(name);addGap(form,8);form.addView(phone);addGap(form,8);form.addView(address);
-        new AlertDialog.Builder(this).setTitle("দোকানের তথ্য ও ইনভয়েস সেটিংস").setMessage("এই তথ্য PDF ইনভয়েস ও টাকা জমার রসিদে দেখানো হবে।")
-            .setView(form).setPositiveButton("সংরক্ষণ",(d,w)->{
-                String shop=name.getText().toString().trim();
-                if(shop.isEmpty()) shop="আমার কাস্টমার";
-                prefs.edit().putString("shop_name",shop).putString("shop_phone",phone.getText().toString().trim())
-                    .putString("shop_address",address.getText().toString().trim()).apply();
-                Toast.makeText(this,"দোকানের তথ্য সংরক্ষণ হয়েছে।",Toast.LENGTH_SHORT).show();
-            }).setNegativeButton("বাতিল",null).show();
-    }
-
-    private String nextDocumentNumber(String prefix) {
-        android.content.SharedPreferences prefs=getPreferences(MODE_PRIVATE);
-        String key="document_sequence_"+prefix;
-        int next=prefs.getInt(key,0)+1;
-        prefs.edit().putInt(key,next).apply();
-        String year=new java.text.SimpleDateFormat("yyyy",Locale.US).format(new java.util.Date());
-        return prefix+"-"+year+"-"+String.format(Locale.US,"%04d",next);
-    }
-
-    private void showReceiptPicker(JSONObject customer) {
-        JSONArray entries=transactions(customer);
-        ArrayList<JSONObject> payments=new ArrayList<>();
-        ArrayList<String> labels=new ArrayList<>();
-        for(int i=entries.length()-1;i>=0;i--) {
-            JSONObject e=entries.optJSONObject(i);
-            if(e!=null && "payment".equals(e.optString("type"))) {
-                payments.add(e);
-                labels.add("৳ "+formatMoney(parseMoney(e.optString("amount")))+"  •  "+e.optString("date")+"  •  "+e.optString("note","জমা"));
-            }
-        }
-        if(payments.isEmpty()) {
-            Toast.makeText(this,"এই কাস্টমারের কোনো টাকা জমার হিসাব নেই।",Toast.LENGTH_LONG).show();
-            return;
-        }
-        new AlertDialog.Builder(this).setTitle("কোন জমার রসিদ তৈরি করবেন?")
-            .setItems(labels.toArray(new String[0]),(d,which)->{
-                pendingReceiptCustomer=customer;
-                pendingReceiptTransaction=payments.get(which);
-                String safe=customer.optString("name","Customer").replaceAll("[^\\p{L}\\p{N}._-]","_");
-                Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/pdf");
-                intent.putExtra(Intent.EXTRA_TITLE,"AmarCustomer-Receipt-"+safe+"-"+System.currentTimeMillis()+".pdf");
-                startActivityForResult(intent,REQUEST_RECEIPT_PDF);
-            }).setNegativeButton("বাতিল",null).show();
-    }
-
-    private void writeMoneyReceiptPdf(Uri uri,JSONObject customer,JSONObject payment) {
-        PdfDocument doc=new PdfDocument();OutputStream out=null;
-        try {
-            PdfDocument.Page page=doc.startPage(new PdfDocument.PageInfo.Builder(595,842,1).create());
-            Canvas canvas=page.getCanvas();canvas.drawColor(Color.WHITE);
-            Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);Paint gold=new Paint(Paint.ANTI_ALIAS_FLAG);
-            p.setColor(Color.rgb(8,25,54));canvas.drawRect(0,0,595,155,p);
-            p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(25);
-            String shop=getPreferences(MODE_PRIVATE).getString("shop_name","আমার কাস্টমার");
-            canvas.drawText(shop,42,55,p);
-            p.setTypeface(Typeface.DEFAULT);p.setTextSize(13);
-            canvas.drawText(getPreferences(MODE_PRIVATE).getString("shop_phone",""),42,82,p);
-            canvas.drawText(getPreferences(MODE_PRIVATE).getString("shop_address",""),42,104,p);
-            gold.setColor(Color.rgb(226,190,119));gold.setTextSize(13);gold.setTypeface(Typeface.DEFAULT_BOLD);
-            canvas.drawText("MONEY RECEIPT",42,132,gold);
-            p.setColor(Color.rgb(30,43,60));p.setTextSize(18);p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
-            canvas.drawText("টাকা জমার রসিদ",42,205,p);
-            p.setTextSize(12);p.setTypeface(Typeface.DEFAULT);
-            String receiptNo=nextDocumentNumber("RCT");
-            canvas.drawText("রসিদ নম্বর: "+receiptNo,42,238,p);
-            canvas.drawText("তারিখ: "+payment.optString("date"),42,262,p);
-            canvas.drawText("কাস্টমার: "+customer.optString("name"),42,300,p);
-            canvas.drawText("মোবাইল: "+customer.optString("phone","—"),42,324,p);
-            p.setColor(Color.rgb(218,226,234));canvas.drawRect(42,350,553,352,p);
-            p.setColor(Color.rgb(30,43,60));p.setTextSize(14);
-            canvas.drawText("জমার বিবরণ",45,383,p);canvas.drawText(payment.optString("note","টাকা জমা"),45,413,p);
-            canvas.drawText("পেমেন্টের পরিমাণ",45,465,p);
-            p.setColor(Color.rgb(143,105,48));p.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));p.setTextSize(23);
-            canvas.drawText("৳ "+formatMoney(parseMoney(payment.optString("amount"))),365,470,p);
-            p.setColor(Color.rgb(30,43,60));p.setTypeface(Typeface.DEFAULT);p.setTextSize(13);
-            canvas.drawText("এ পর্যন্ত মোট জমা: ৳ "+formatMoney(sumTransactions(customer,"payment")),42,525,p);
-            canvas.drawText("বর্তমান বকেয়া: ৳ "+formatMoney(customerDue(customer)),42,550,p);
-            p.setColor(Color.rgb(112,125,143));p.setTextSize(11);
-            canvas.drawText("টাকা গ্রহণের জন্য ধন্যবাদ।",42,780,p);
-            canvas.drawText("গ্রহণকারীর স্বাক্ষর: ____________________",355,780,p);
-            doc.finishPage(page);
-            out=getContentResolver().openOutputStream(uri);if(out==null)throw new Exception("No output");
-            doc.writeTo(out);out.flush();
-            Toast.makeText(this,"PDF টাকা জমার রসিদ তৈরি হয়েছে।",Toast.LENGTH_LONG).show();
-        } catch(Exception e) {Toast.makeText(this,"রসিদ PDF তৈরি করা যায়নি।",Toast.LENGTH_LONG).show();}
-        finally {try{if(out!=null)out.close();}catch(Exception ignored){}doc.close();}
-    }
-
     private void showBackupOptions() {
-        long lastBackup=getPreferences(MODE_PRIVATE).getLong("last_backup_success",0);
-        String backupStatus=lastBackup==0?"এখনো কোনো সফল ব্যাকআপ নেই":"সর্বশেষ ব্যাকআপ: "+new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a",Locale.getDefault()).format(new java.util.Date(lastBackup));
-        new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার").setMessage(backupStatus)
+        new AlertDialog.Builder(this).setTitle("তথ্য ব্যাকআপ ও পুনরুদ্ধার")
             .setItems(new String[]{"ব্যাকআপ তৈরি করুন", "ব্যাকআপ থেকে তথ্য ফিরিয়ে আনুন"}, (dialog, which) -> {
                 if (which == 0) createBackupFile(); else chooseBackupFile();
             }).setNegativeButton("বন্ধ", null).show();
@@ -2188,40 +1272,21 @@ public class MainActivity extends Activity {
         Uri uri = data.getData();
         if (requestCode == REQUEST_REPORT_EXPORT) {
             writeReportCsv(uri, pendingReportPeriod);
-        } else if (requestCode == REQUEST_INVOICE_PDF) {
-            if (pendingInvoiceCustomer != null && pendingInvoiceTransaction != null)
-                writeInvoicePdf(uri, pendingInvoiceCustomer, pendingInvoiceTransaction);
-            pendingInvoiceCustomer = null;pendingInvoiceTransaction = null;
-        } else if (requestCode == REQUEST_RECEIPT_PDF) {
-            if(pendingReceiptCustomer!=null && pendingReceiptTransaction!=null)
-                writeMoneyReceiptPdf(uri,pendingReceiptCustomer,pendingReceiptTransaction);
-            pendingReceiptCustomer=null;pendingReceiptTransaction=null;
         } else if (requestCode == REQUEST_BACKUP_EXPORT) {
             try {
                 JSONObject backup = new JSONObject();
                 backup.put("app", "Amar Customer");
-                backup.put("version", 3);
-                backup.put("backupFormat", "AmarCustomer55");
+                backup.put("version", 1);
                 backup.put("createdAt", System.currentTimeMillis());
                 JSONArray saved = new JSONArray();
                 for (JSONObject customer : customers) saved.put(customer);
                 backup.put("customers", saved);
                 backup.put("expenses", expenses);
-                JSONObject shopProfile=new JSONObject();
-                shopProfile.put("name",getPreferences(MODE_PRIVATE).getString("shop_name","আমার কাস্টমার"));
-                shopProfile.put("phone",getPreferences(MODE_PRIVATE).getString("shop_phone",""));
-                shopProfile.put("address",getPreferences(MODE_PRIVATE).getString("shop_address",""));
-                backup.put("shopProfile",shopProfile);
-                JSONObject documentSequences=new JSONObject();
-                documentSequences.put("invoice",getPreferences(MODE_PRIVATE).getInt("document_sequence_INV",0));
-                documentSequences.put("receipt",getPreferences(MODE_PRIVATE).getInt("document_sequence_RCT",0));
-                backup.put("documentSequences",documentSequences);
                 try (OutputStream out = getContentResolver().openOutputStream(uri)) {
                     if (out == null) throw new Exception("File unavailable");
                     out.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));
                     out.flush();
                 }
-                getPreferences(MODE_PRIVATE).edit().putLong("last_backup_success", System.currentTimeMillis()).apply();
                 Toast.makeText(this, "ব্যাকআপ সফলভাবে সংরক্ষণ হয়েছে।", Toast.LENGTH_LONG).show();
             } catch (Exception e) {
                 Toast.makeText(this, "ব্যাকআপ সংরক্ষণ ব্যর্থ হয়েছে।", Toast.LENGTH_LONG).show();
@@ -2242,8 +1307,6 @@ public class MainActivity extends Activity {
             JSONArray incoming = backup.optJSONArray("customers");
             if (incoming == null) throw new Exception("Invalid backup");
             JSONArray incomingExpenses = backup.optJSONArray("expenses");
-            JSONObject incomingShopProfile=backup.optJSONObject("shopProfile");
-            JSONObject incomingSequences=backup.optJSONObject("documentSequences");
             JSONArray checkedExpenses = new JSONArray();
             if (incomingExpenses != null) {
                 for (int i = 0; i < incomingExpenses.length(); i++) {
@@ -2271,17 +1334,6 @@ public class MainActivity extends Activity {
                         expenses = checkedExpenses;
                         saveExpenses();
                     }
-                    android.content.SharedPreferences.Editor settings=getPreferences(MODE_PRIVATE).edit();
-                    if(incomingShopProfile!=null) {
-                        settings.putString("shop_name",incomingShopProfile.optString("name","আমার কাস্টমার"));
-                        settings.putString("shop_phone",incomingShopProfile.optString("phone",""));
-                        settings.putString("shop_address",incomingShopProfile.optString("address",""));
-                    }
-                    if(incomingSequences!=null) {
-                        settings.putInt("document_sequence_INV",Math.max(0,incomingSequences.optInt("invoice",0)));
-                        settings.putInt("document_sequence_RCT",Math.max(0,incomingSequences.optInt("receipt",0)));
-                    }
-                    settings.apply();
                     saveData();
                     showCustomers();
                     Toast.makeText(this, "ব্যাকআপের তথ্য সফলভাবে ফিরিয়ে আনা হয়েছে।", Toast.LENGTH_LONG).show();
