@@ -8,9 +8,9 @@ android {
         applicationId 'com.amarcustomer100.app'
         minSdk 23
         targetSdk 28
-        versionCode 146
+        versionCode 147
         versionName '100.0'
     }
 }
 
-// V100.0 final premium Royal Navy & Gold identity refresh; existing features and data schema retained.
+// V100.0 final Royal Navy & Gold crown monogram identity; design-only update, existing features and data schema retained.
