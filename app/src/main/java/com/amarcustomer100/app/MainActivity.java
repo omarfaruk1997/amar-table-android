@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -21,6 +23,10 @@ import android.widget.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
@@ -28,6 +34,9 @@ public class MainActivity extends Activity {
     private JSONArray expenses = new JSONArray();
     private LinearLayout root, listArea;
     private EditText search;
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService dataExecutor = Executors.newSingleThreadExecutor();
+    private Runnable pendingSearch;
     private int selectedCustomer = -1;
     private boolean darkMode = false;
     private static final int REQUEST_BACKUP_EXPORT = 7101;
@@ -46,8 +55,44 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         darkMode = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", false);
-        loadData();
-        showCustomers();
+        showLoadingScreen();
+        dataExecutor.execute(() -> {
+            loadData();
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) showCustomers();
+            });
+        });
+    }
+
+    @Override protected void onDestroy() {
+        searchHandler.removeCallbacksAndMessages(null);
+        if (pendingSearch != null) {
+            searchHandler.removeCallbacks(pendingSearch);
+            pendingSearch = null;
+        }
+        dataExecutor.shutdownNow();
+        super.onDestroy();
+    }
+
+    private void showLoadingScreen() {
+        LinearLayout loading = column();
+        loading.setGravity(Gravity.CENTER);
+        loading.setBackgroundColor(BG);
+        TextView title = label("আমার কাস্টমার", 23, true, INK);
+        title.setGravity(Gravity.CENTER);
+        loading.addView(title);
+        ProgressBar progress = new ProgressBar(this);
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(dp(42), dp(42));
+        progressParams.topMargin = dp(18);
+        loading.addView(progress, progressParams);
+        TextView message = label("আপনার তথ্য প্রস্তুত করা হচ্ছে...", 13, false, MUTED);
+        message.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
+        messageParams.topMargin = dp(12);
+        loading.addView(message, messageParams);
+        setContentView(loading);
+        getWindow().setStatusBarColor(Color.rgb(10, 23, 43));
+        getWindow().setNavigationBarColor(BG);
     }
 
     private int dp(float v) {
@@ -112,7 +157,7 @@ public class MainActivity extends Activity {
         b.setPadding(dp(14), dp(11), dp(14), dp(11));
         b.setBackground(shape(bg, 0, radius));
         b.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(55, 20, 80, 120)), null, shape(Color.WHITE, 0, radius)));
-        b.setElevation(dp(2));
+        b.setElevation(dp(1));
         b.setLetterSpacing(0.015f);
         b.setClickable(true);
         b.setFocusable(true);
@@ -246,7 +291,12 @@ public class MainActivity extends Activity {
     private TextWatcher watcher(FilterAction action) {
         return new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            public void onTextChanged(CharSequence s, int st, int before, int count) { action.run(s.toString()); }
+            public void onTextChanged(CharSequence s, int st, int before, int count) {
+                if (pendingSearch != null) searchHandler.removeCallbacks(pendingSearch);
+                final String query = s.toString();
+                pendingSearch = () -> action.run(query);
+                searchHandler.postDelayed(pendingSearch, 120);
+            }
             public void afterTextChanged(Editable e) {}
         };
     }
@@ -271,7 +321,7 @@ public class MainActivity extends Activity {
             card.setPadding(dp(7), dp(4), dp(7), dp(4));
             card.setBackground(shape(darkMode ? Color.rgb(25, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(68, 82, 101) : Color.rgb(218, 202, 171), 22));
-            card.setElevation(dp(5));
+            card.setElevation(dp(2));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -282,9 +332,7 @@ public class MainActivity extends Activity {
             accentParams.bottomMargin = dp(4);
             card.addView(accentLine, accentParams);
             card.setClipToOutline(true);
-            card.setAlpha(0f);
-            card.setTranslationY(dp(12));
-            card.animate().alpha(1f).translationY(0f).setDuration(260).start();
+
 
             LinearLayout top = row();
             top.setGravity(Gravity.CENTER_VERTICAL);
@@ -1130,11 +1178,9 @@ public class MainActivity extends Activity {
             card.setPadding(dp(8), dp(5), dp(6), dp(5));
             card.setBackground(shape(darkMode ? Color.rgb(24, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(91, 102, 116) : Color.rgb(213, 192, 151), 21));
-            card.setElevation(dp(6));
+            card.setElevation(dp(2));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
-            card.setAlpha(0f);
-            card.setTranslationY(dp(10));
-            card.animate().alpha(1f).translationY(0f).setDuration(240).start();
+
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
             productMark.setBackground(shape(Color.rgb(245, 239, 226), Color.rgb(196, 220, 235), 14));
@@ -1349,18 +1395,19 @@ public class MainActivity extends Activity {
         }
     
         private void mergeExcelCustomers(JSONArray incoming) throws Exception {
+            Map<String, JSONObject> customerIndex = new HashMap<>();
+            Map<JSONObject, Map<String, JSONObject>> productIndexes = new HashMap<>();
+            for (JSONObject customer : customers) {
+                String key = normalizeCustomerName(customer.optString("name"));
+                if (!customerIndex.containsKey(key)) customerIndex.put(key, customer);
+            }
             for (int i = 0; i < incoming.length(); i++) {
                 JSONObject imported = incoming.getJSONObject(i);
                 String importedName = normalizeCustomerName(imported.optString("name"));
-                JSONObject existing = null;
-                for (JSONObject customer : customers) {
-                    if (normalizeCustomerName(customer.optString("name")).equals(importedName)) {
-                        existing = customer;
-                        break;
-                    }
-                }
+                JSONObject existing = customerIndex.get(importedName);
                 if (existing == null) {
                     customers.add(imported);
+                    customerIndex.put(importedName, imported);
                     continue;
                 }
                 if (existing.optString("address").trim().isEmpty())
@@ -1372,23 +1419,32 @@ public class MainActivity extends Activity {
                     currentProducts = new JSONArray();
                     existing.put("products", currentProducts);
                 }
+                Map<String, JSONObject> productIndex = productIndexes.get(existing);
+                if (productIndex == null) {
+                    productIndex = new HashMap<>();
+                    for (int k = 0; k < currentProducts.length(); k++) {
+                        JSONObject current = currentProducts.optJSONObject(k);
+                        if (current != null) {
+                            String key = current.optString("name").trim().toLowerCase(Locale.ROOT);
+                            if (!productIndex.containsKey(key)) productIndex.put(key, current);
+                        }
+                    }
+                    productIndexes.put(existing, productIndex);
+                }
                 JSONArray importedProducts = imported.optJSONArray("products");
                 if (importedProducts == null) continue;
                 for (int p = 0; p < importedProducts.length(); p++) {
                     JSONObject incomingProduct = importedProducts.getJSONObject(p);
                     String incomingName = incomingProduct.optString("name").trim();
-                    JSONObject match = null;
-                    for (int k = 0; k < currentProducts.length(); k++) {
-                        JSONObject current = currentProducts.optJSONObject(k);
-                        if (current != null && current.optString("name").trim().equalsIgnoreCase(incomingName)) {
-                            match = current;
-                            break;
-                        }
-                    }
-                    if (match == null) currentProducts.put(incomingProduct);
-                    else if (match.optString("price").trim().isEmpty()
-                            && !incomingProduct.optString("price").trim().isEmpty())
+                    String productKey = incomingName.toLowerCase(Locale.ROOT);
+                    JSONObject match = productIndex.get(productKey);
+                    if (match == null) {
+                        currentProducts.put(incomingProduct);
+                        productIndex.put(productKey, incomingProduct);
+                    } else if (match.optString("price").trim().isEmpty()
+                            && !incomingProduct.optString("price").trim().isEmpty()) {
                         match.put("price", incomingProduct.optString("price"));
+                    }
                 }
             }
         }
