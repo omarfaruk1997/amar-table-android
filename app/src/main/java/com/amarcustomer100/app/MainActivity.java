@@ -1427,13 +1427,91 @@ public class MainActivity extends Activity {
         getSharedPreferences("amar_customer", MODE_PRIVATE).edit().putString("data", a.toString()).apply();
     }
 
-    private void loadData() {
-        try {
-            JSONArray a = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("data", "[]"));
-            for (int i = 0; i < a.length(); i++) customers.add(a.getJSONObject(i));
-        } catch (Exception ignored) {}
-        try {
-            expenses = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("expenses", "[]"));
-        } catch (Exception ignored) { expenses = new JSONArray(); }
-    }
+    private String normalizeCustomerName(String value) {
+            return value == null ? "" : value.toLowerCase(Locale.ROOT)
+                    .replace("মেসার্স", "").replace("মোঃ", "").replace("মো:", "")
+                    .replaceAll("\\s+", "").trim();
+        }
+    
+        private void mergeExcelCustomers(JSONArray incoming) throws Exception {
+            for (int i = 0; i < incoming.length(); i++) {
+                JSONObject imported = incoming.getJSONObject(i);
+                String importedName = normalizeCustomerName(imported.optString("name"));
+                JSONObject existing = null;
+                for (JSONObject customer : customers) {
+                    if (normalizeCustomerName(customer.optString("name")).equals(importedName)) {
+                        existing = customer;
+                        break;
+                    }
+                }
+                if (existing == null) {
+                    customers.add(imported);
+                    continue;
+                }
+                if (existing.optString("address").trim().isEmpty())
+                    existing.put("address", imported.optString("address"));
+                if (existing.optString("phone").trim().isEmpty())
+                    existing.put("phone", imported.optString("phone"));
+                JSONArray currentProducts = existing.optJSONArray("products");
+                if (currentProducts == null) {
+                    currentProducts = new JSONArray();
+                    existing.put("products", currentProducts);
+                }
+                JSONArray importedProducts = imported.optJSONArray("products");
+                if (importedProducts == null) continue;
+                for (int p = 0; p < importedProducts.length(); p++) {
+                    JSONObject incomingProduct = importedProducts.getJSONObject(p);
+                    String incomingName = incomingProduct.optString("name").trim();
+                    JSONObject match = null;
+                    for (int k = 0; k < currentProducts.length(); k++) {
+                        JSONObject current = currentProducts.optJSONObject(k);
+                        if (current != null && current.optString("name").trim().equalsIgnoreCase(incomingName)) {
+                            match = current;
+                            break;
+                        }
+                    }
+                    if (match == null) currentProducts.put(incomingProduct);
+                    else if (match.optString("price").trim().isEmpty()
+                            && !incomingProduct.optString("price").trim().isEmpty())
+                        match.put("price", incomingProduct.optString("price"));
+                }
+            }
+        }
+    
+        private void loadData() {
+            try {
+                JSONArray a = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("data", "[]"));
+                for (int i = 0; i < a.length(); i++) customers.add(a.getJSONObject(i));
+            } catch (Exception ignored) {}
+            try {
+                expenses = new JSONArray(getSharedPreferences("amar_customer", MODE_PRIVATE).getString("expenses", "[]"));
+            } catch (Exception ignored) { expenses = new JSONArray(); }
+    
+            if (!getPreferences(MODE_PRIVATE).getBoolean("excel_customers_imported_v1", false)) {
+                try {
+                    StringBuilder encoded = new StringBuilder();
+                    try (java.io.InputStream in = getAssets().open("excel_customers.json.gz.b64");
+                         java.io.BufferedReader reader = new java.io.BufferedReader(
+                             new java.io.InputStreamReader(in, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) encoded.append(line.trim());
+                    }
+                    byte[] compressed = android.util.Base64.decode(encoded.toString(), android.util.Base64.DEFAULT);
+                    StringBuilder json = new StringBuilder();
+                    try (java.util.zip.GZIPInputStream gzip = new java.util.zip.GZIPInputStream(
+                             new java.io.ByteArrayInputStream(compressed));
+                         java.io.BufferedReader reader = new java.io.BufferedReader(
+                             new java.io.InputStreamReader(gzip, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) json.append(line);
+                    }
+                    JSONArray imported = new JSONArray(json.toString());
+                    mergeExcelCustomers(imported);
+                    saveData();
+                    getPreferences(MODE_PRIVATE).edit().putBoolean("excel_customers_imported_v1", true).apply();
+                } catch (Exception e) {
+                    android.util.Log.e("AmarCustomer100", "Excel customer import failed", e);
+                }
+            }
+        }
 }
