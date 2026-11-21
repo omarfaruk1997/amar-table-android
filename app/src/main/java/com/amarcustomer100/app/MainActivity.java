@@ -23,6 +23,10 @@ import android.widget.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
@@ -31,6 +35,7 @@ public class MainActivity extends Activity {
     private LinearLayout root, listArea;
     private EditText search;
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService dataExecutor = Executors.newSingleThreadExecutor();
     private Runnable pendingSearch;
     private int selectedCustomer = -1;
     private boolean darkMode = false;
@@ -50,8 +55,32 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         darkMode = getPreferences(MODE_PRIVATE).getBoolean("dark_mode", false);
-        loadData();
-        showCustomers();
+        showLoadingScreen();
+        dataExecutor.execute(() -> {
+            loadData();
+            runOnUiThread(this::showCustomers);
+        });
+    }
+
+    private void showLoadingScreen() {
+        LinearLayout loading = column();
+        loading.setGravity(Gravity.CENTER);
+        loading.setBackgroundColor(BG);
+        TextView title = label("আমার কাস্টমার", 23, true, INK);
+        title.setGravity(Gravity.CENTER);
+        loading.addView(title);
+        ProgressBar progress = new ProgressBar(this);
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(dp(42), dp(42));
+        progressParams.topMargin = dp(18);
+        loading.addView(progress, progressParams);
+        TextView message = label("আপনার তথ্য প্রস্তুত করা হচ্ছে...", 13, false, MUTED);
+        message.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(-1, -2);
+        messageParams.topMargin = dp(12);
+        loading.addView(message, messageParams);
+        setContentView(loading);
+        getWindow().setStatusBarColor(Color.rgb(10, 23, 43));
+        getWindow().setNavigationBarColor(BG);
     }
 
     private int dp(float v) {
@@ -1354,18 +1383,19 @@ public class MainActivity extends Activity {
         }
     
         private void mergeExcelCustomers(JSONArray incoming) throws Exception {
+            Map<String, JSONObject> customerIndex = new HashMap<>();
+            Map<JSONObject, Map<String, JSONObject>> productIndexes = new HashMap<>();
+            for (JSONObject customer : customers) {
+                String key = normalizeCustomerName(customer.optString("name"));
+                if (!customerIndex.containsKey(key)) customerIndex.put(key, customer);
+            }
             for (int i = 0; i < incoming.length(); i++) {
                 JSONObject imported = incoming.getJSONObject(i);
                 String importedName = normalizeCustomerName(imported.optString("name"));
-                JSONObject existing = null;
-                for (JSONObject customer : customers) {
-                    if (normalizeCustomerName(customer.optString("name")).equals(importedName)) {
-                        existing = customer;
-                        break;
-                    }
-                }
+                JSONObject existing = customerIndex.get(importedName);
                 if (existing == null) {
                     customers.add(imported);
+                    customerIndex.put(importedName, imported);
                     continue;
                 }
                 if (existing.optString("address").trim().isEmpty())
@@ -1377,23 +1407,32 @@ public class MainActivity extends Activity {
                     currentProducts = new JSONArray();
                     existing.put("products", currentProducts);
                 }
+                Map<String, JSONObject> productIndex = productIndexes.get(existing);
+                if (productIndex == null) {
+                    productIndex = new HashMap<>();
+                    for (int k = 0; k < currentProducts.length(); k++) {
+                        JSONObject current = currentProducts.optJSONObject(k);
+                        if (current != null) {
+                            String key = current.optString("name").trim().toLowerCase(Locale.ROOT);
+                            if (!productIndex.containsKey(key)) productIndex.put(key, current);
+                        }
+                    }
+                    productIndexes.put(existing, productIndex);
+                }
                 JSONArray importedProducts = imported.optJSONArray("products");
                 if (importedProducts == null) continue;
                 for (int p = 0; p < importedProducts.length(); p++) {
                     JSONObject incomingProduct = importedProducts.getJSONObject(p);
                     String incomingName = incomingProduct.optString("name").trim();
-                    JSONObject match = null;
-                    for (int k = 0; k < currentProducts.length(); k++) {
-                        JSONObject current = currentProducts.optJSONObject(k);
-                        if (current != null && current.optString("name").trim().equalsIgnoreCase(incomingName)) {
-                            match = current;
-                            break;
-                        }
-                    }
-                    if (match == null) currentProducts.put(incomingProduct);
-                    else if (match.optString("price").trim().isEmpty()
-                            && !incomingProduct.optString("price").trim().isEmpty())
+                    String productKey = incomingName.toLowerCase(Locale.ROOT);
+                    JSONObject match = productIndex.get(productKey);
+                    if (match == null) {
+                        currentProducts.put(incomingProduct);
+                        productIndex.put(productKey, incomingProduct);
+                    } else if (match.optString("price").trim().isEmpty()
+                            && !incomingProduct.optString("price").trim().isEmpty()) {
                         match.put("price", incomingProduct.optString("price"));
+                    }
                 }
             }
         }
