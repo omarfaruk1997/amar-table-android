@@ -58,8 +58,20 @@ public class MainActivity extends Activity {
         showLoadingScreen();
         dataExecutor.execute(() -> {
             loadData();
-            runOnUiThread(this::showCustomers);
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) showCustomers();
+            });
         });
+    }
+
+    @Override protected void onDestroy() {
+        searchHandler.removeCallbacksAndMessages(null);
+        if (pendingSearch != null) {
+            searchHandler.removeCallbacks(pendingSearch);
+            pendingSearch = null;
+        }
+        dataExecutor.shutdownNow();
+        super.onDestroy();
     }
 
     private void showLoadingScreen() {
