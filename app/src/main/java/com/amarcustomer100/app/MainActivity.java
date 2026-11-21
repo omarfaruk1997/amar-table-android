@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -28,6 +30,8 @@ public class MainActivity extends Activity {
     private JSONArray expenses = new JSONArray();
     private LinearLayout root, listArea;
     private EditText search;
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
+    private Runnable pendingSearch;
     private int selectedCustomer = -1;
     private boolean darkMode = false;
     private static final int REQUEST_BACKUP_EXPORT = 7101;
@@ -112,7 +116,7 @@ public class MainActivity extends Activity {
         b.setPadding(dp(14), dp(11), dp(14), dp(11));
         b.setBackground(shape(bg, 0, radius));
         b.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(55, 20, 80, 120)), null, shape(Color.WHITE, 0, radius)));
-        b.setElevation(dp(2));
+        b.setElevation(dp(1));
         b.setLetterSpacing(0.015f);
         b.setClickable(true);
         b.setFocusable(true);
@@ -246,7 +250,12 @@ public class MainActivity extends Activity {
     private TextWatcher watcher(FilterAction action) {
         return new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-            public void onTextChanged(CharSequence s, int st, int before, int count) { action.run(s.toString()); }
+            public void onTextChanged(CharSequence s, int st, int before, int count) {
+                if (pendingSearch != null) searchHandler.removeCallbacks(pendingSearch);
+                final String query = s.toString();
+                pendingSearch = () -> action.run(query);
+                searchHandler.postDelayed(pendingSearch, 120);
+            }
             public void afterTextChanged(Editable e) {}
         };
     }
@@ -271,7 +280,7 @@ public class MainActivity extends Activity {
             card.setPadding(dp(7), dp(4), dp(7), dp(4));
             card.setBackground(shape(darkMode ? Color.rgb(25, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(68, 82, 101) : Color.rgb(218, 202, 171), 22));
-            card.setElevation(dp(5));
+            card.setElevation(dp(2));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 22)));
             View accentLine = new View(this);
             GradientDrawable accentGradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
@@ -282,9 +291,7 @@ public class MainActivity extends Activity {
             accentParams.bottomMargin = dp(4);
             card.addView(accentLine, accentParams);
             card.setClipToOutline(true);
-            card.setAlpha(0f);
-            card.setTranslationY(dp(12));
-            card.animate().alpha(1f).translationY(0f).setDuration(260).start();
+
 
             LinearLayout top = row();
             top.setGravity(Gravity.CENTER_VERTICAL);
@@ -1130,11 +1137,9 @@ public class MainActivity extends Activity {
             card.setPadding(dp(8), dp(5), dp(6), dp(5));
             card.setBackground(shape(darkMode ? Color.rgb(24, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(91, 102, 116) : Color.rgb(213, 192, 151), 21));
-            card.setElevation(dp(6));
+            card.setElevation(dp(2));
             card.setForeground(new RippleDrawable(ColorStateList.valueOf(Color.argb(38, 12, 82, 113)), null, shape(Color.WHITE, 0, 21)));
-            card.setAlpha(0f);
-            card.setTranslationY(dp(10));
-            card.animate().alpha(1f).translationY(0f).setDuration(240).start();
+
             TextView productMark = label("▦", 20, true, BLUE);
             productMark.setGravity(Gravity.CENTER);
             productMark.setBackground(shape(Color.rgb(245, 239, 226), Color.rgb(196, 220, 235), 14));
