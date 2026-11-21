@@ -287,6 +287,7 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(260).start();
 
             LinearLayout top = row();
+            top.setGravity(Gravity.CENTER_VERTICAL);
             TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 16, true,
                     darkMode ? Color.rgb(255, 222, 159) : Color.rgb(21, 43, 70));
             avatar.setGravity(Gravity.CENTER);
@@ -296,7 +297,11 @@ public class MainActivity extends Activity {
             avatar.setElevation(dp(1));
             top.addView(avatar, new LinearLayout.LayoutParams(dp(27), dp(27)));
             TextView customerName = label(name, 15, true, INK);
-            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, dp(27), 1);
+            customerName.setSingleLine(false);
+            customerName.setMaxLines(2);
+            customerName.setEllipsize(android.text.TextUtils.TruncateAt.END);
+            customerName.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, -2, 1);
             nameParams.leftMargin = dp(11);
             top.addView(customerName, nameParams);
 
