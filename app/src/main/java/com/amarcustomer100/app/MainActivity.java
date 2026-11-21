@@ -300,18 +300,19 @@ public class MainActivity extends Activity {
             nameParams.leftMargin = dp(11);
             top.addView(customerName, nameParams);
 
-            card.addView(top);
+            LinearLayout details = column();
+            details.addView(top);
 
             TextView addr = label("⌖  " + (address.trim().isEmpty() ? "ঠিকানা যোগ করা হয়নি" : address), 12, false,
                     address.trim().isEmpty() ? MUTED : Color.rgb(76, 91, 111));
             LinearLayout.LayoutParams adp = new LinearLayout.LayoutParams(-1, -2);
-            adp.topMargin = dp(1);
-            card.addView(addr, adp);
+            adp.topMargin = dp(5);
+            details.addView(addr, adp);
             if (!phone.trim().isEmpty()) {
                 TextView mobile = label("☎  " + phone, 12, false, TEAL);
                 LinearLayout.LayoutParams mobileParams = new LinearLayout.LayoutParams(-1, -2);
-                mobileParams.topMargin = 0;
-                card.addView(mobile, mobileParams);
+                mobileParams.topMargin = dp(2);
+                details.addView(mobile, mobileParams);
             }
 
             LinearLayout actions = row();
@@ -340,12 +341,19 @@ public class MainActivity extends Activity {
             edit.setContentDescription("সম্পাদনা");
             delete.setContentDescription("মুছুন");
             call.setContentDescription("ফোন করুন");
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(36), dp(31));
-            bp.setMargins(dp(5), 0, dp(5), 0);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(34), dp(32));
+            bp.setMargins(dp(3), 0, dp(3), 0);
             actions.addView(edit, bp);
             actions.addView(delete, bp);
             actions.addView(call, bp);
-            card.addView(actions);
+
+            LinearLayout content = row();
+            content.setGravity(Gravity.CENTER_VERTICAL);
+            content.addView(details, new LinearLayout.LayoutParams(0, -2, 1));
+            LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(-2, -2);
+            actionsParams.leftMargin = dp(4);
+            content.addView(actions, actionsParams);
+            card.addView(content);
             call.setOnClickListener(v -> dialCustomer(phone));
 
             card.setOnClickListener(v -> showProducts(index));
