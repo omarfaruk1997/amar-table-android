@@ -268,7 +268,7 @@ public class MainActivity extends Activity {
             if (!(name + " " + address + " " + phone).toLowerCase(Locale.ROOT).contains(q)) continue;
 
             LinearLayout card = column();
-            card.setPadding(dp(12), dp(11), dp(12), dp(10));
+            card.setPadding(dp(9), dp(7), dp(9), dp(7));
             card.setBackground(shape(darkMode ? Color.rgb(25, 38, 56) : Color.rgb(255, 254, 250),
                     darkMode ? Color.rgb(68, 82, 101) : Color.rgb(218, 202, 171), 22));
             card.setElevation(dp(5));
@@ -287,16 +287,16 @@ public class MainActivity extends Activity {
             card.animate().alpha(1f).translationY(0f).setDuration(260).start();
 
             LinearLayout top = row();
-            TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 19, true,
+            TextView avatar = label(name.isEmpty() ? "?" : name.substring(0, 1), 16, true,
                     darkMode ? Color.rgb(255, 222, 159) : Color.rgb(21, 43, 70));
             avatar.setGravity(Gravity.CENTER);
             avatar.setBackground(shape(darkMode ? Color.rgb(64, 57, 43) : Color.rgb(248, 240, 221),
                     Color.rgb(205, 174, 117), 15));
             avatar.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             avatar.setElevation(dp(1));
-            top.addView(avatar, new LinearLayout.LayoutParams(dp(36), dp(36)));
-            TextView customerName = label(name, 16, true, INK);
-            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, dp(36), 1);
+            top.addView(avatar, new LinearLayout.LayoutParams(dp(30), dp(30)));
+            TextView customerName = label(name, 15, true, INK);
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, dp(30), 1);
             nameParams.leftMargin = dp(11);
             top.addView(customerName, nameParams);
 
@@ -315,40 +315,38 @@ public class MainActivity extends Activity {
             }
 
             TextView count = label("▦  " + productCount(c) + "টি পণ্য", 12, true, BLUE);
-            LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(24));
-            countParams.topMargin = dp(4);
+            LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, dp(20));
+            countParams.topMargin = dp(2);
             card.addView(count, countParams);
-
-            LinearLayout finance = row();
-            finance.setPadding(dp(8), dp(5), dp(8), dp(5));
-            finance.setBackground(shape(darkMode ? Color.rgb(36, 47, 62) : Color.rgb(247, 244, 236),
-                    darkMode ? Color.rgb(94, 82, 59) : Color.rgb(225, 211, 184), 13));
-            TextView dueInfo = label("বকেয়া ৳ " + formatMoney(customerDue(c)), 12, true,
-                    customerDue(c) > 0 ? (darkMode ? Color.rgb(255, 174, 164) : Color.rgb(178, 63, 55)) : TEAL);
-            finance.addView(dueInfo, new LinearLayout.LayoutParams(0, -2, 1));
-            TextView salesInfo = label("বিক্রি ৳ " + formatMoney(sumTransactions(c, "sale")), 11, true, darkMode ? Color.rgb(180, 210, 235) : BLUE);
-            salesInfo.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-            finance.addView(salesInfo, new LinearLayout.LayoutParams(0, -2, 1));
-            LinearLayout.LayoutParams financeParams = new LinearLayout.LayoutParams(-1, -2);
-            financeParams.topMargin = dp(4);
-            card.addView(finance, financeParams);
 
             LinearLayout actions = row();
             actions.setGravity(Gravity.CENTER);
-            actions.setPadding(0, dp(4), 0, 0);
+            actions.setPadding(0, dp(2), 0, 0);
             TextView edit = action("✎", darkMode ? Color.rgb(48, 62, 80) : Color.rgb(239, 234, 222),
                     darkMode ? Color.rgb(238, 218, 179) : Color.rgb(23, 43, 70), 13);
             TextView delete = action("🗑", darkMode ? Color.rgb(72, 43, 47) : Color.rgb(255, 239, 237), Color.rgb(190, 45, 55), 13);
             TextView call = action("☎", darkMode ? Color.rgb(63, 56, 43) : Color.rgb(247, 240, 224),
                     darkMode ? Color.rgb(255, 220, 153) : Color.rgb(133, 96, 43), 13);
-            edit.setTextSize(25);
-            delete.setTextSize(21);
-            call.setTextSize(23);
+            edit.setTextSize(20);
+            delete.setTextSize(19);
+            call.setTextSize(20);
+            edit.setGravity(Gravity.CENTER);
+            delete.setGravity(Gravity.CENTER);
+            call.setGravity(Gravity.CENTER);
+            edit.setPadding(0, 0, 0, 0);
+            delete.setPadding(0, 0, 0, 0);
+            call.setPadding(0, 0, 0, 0);
+            edit.setIncludeFontPadding(false);
+            delete.setIncludeFontPadding(false);
+            call.setIncludeFontPadding(false);
+            edit.setElevation(dp(5));
+            delete.setElevation(dp(5));
+            call.setElevation(dp(5));
             edit.setContentDescription("সম্পাদনা");
             delete.setContentDescription("মুছুন");
             call.setContentDescription("ফোন করুন");
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(46), dp(40));
-            bp.setMargins(dp(7), dp(2), dp(7), 0);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(38), dp(34));
+            bp.setMargins(dp(6), dp(1), dp(6), 0);
             actions.addView(edit, bp);
             actions.addView(delete, bp);
             actions.addView(call, bp);
@@ -381,22 +379,6 @@ public class MainActivity extends Activity {
         ap.bottomMargin = dp(10);
         homeActions.addView(add, ap);
         add.setOnClickListener(v -> customerDialog(-1));
-
-        TextView reports = action("▤   ব্যবসার বিক্রয় রিপোর্ট",
-                darkMode ? Color.rgb(27, 65, 66) : Color.rgb(226, 243, 239),
-                darkMode ? Color.rgb(145, 226, 210) : Color.rgb(142, 103, 44), 15);
-        LinearLayout.LayoutParams reportParams = new LinearLayout.LayoutParams(-1, dp(48));
-        reportParams.bottomMargin = dp(9);
-        homeActions.addView(reports, reportParams);
-        reports.setOnClickListener(v -> showBusinessReport("month"));
-
-        TextView expenseButton = action("▣   দৈনিক খরচের হিসাব",
-                darkMode ? Color.rgb(57, 43, 43) : Color.rgb(249, 239, 225),
-                darkMode ? Color.rgb(255, 190, 170) : Color.rgb(147, 93, 49), 15);
-        LinearLayout.LayoutParams expenseParams = new LinearLayout.LayoutParams(-1, dp(48));
-        expenseParams.bottomMargin = dp(8);
-        homeActions.addView(expenseButton, expenseParams);
-        expenseButton.setOnClickListener(v -> showExpenses(""));
 
         TextView backup = action("☁   তথ্য ব্যাকআপ ও পুনরুদ্ধার",
                 darkMode ? Color.rgb(55, 48, 36) : Color.rgb(247, 240, 224),
@@ -1182,12 +1164,20 @@ public class MainActivity extends Activity {
 
             TextView edit = action("✎", Color.rgb(245, 239, 226), Color.rgb(23, 43, 70), 13);
             TextView del = action("🗑", Color.rgb(255, 239, 240), Color.rgb(190, 45, 55), 13);
-            edit.setTextSize(21);
+            edit.setTextSize(19);
             del.setTextSize(18);
+            edit.setGravity(Gravity.CENTER);
+            del.setGravity(Gravity.CENTER);
+            edit.setPadding(0, 0, 0, 0);
+            del.setPadding(0, 0, 0, 0);
+            edit.setIncludeFontPadding(false);
+            del.setIncludeFontPadding(false);
+            edit.setElevation(dp(5));
+            del.setElevation(dp(5));
             edit.setContentDescription("বদল");
             del.setContentDescription("মুছুন");
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(40), dp(38));
-            bp.leftMargin = dp(8);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(dp(34), dp(34));
+            bp.leftMargin = dp(6);
             card.addView(edit, bp);
             card.addView(del, bp);
             edit.setOnClickListener(v -> productDialog(ix));
